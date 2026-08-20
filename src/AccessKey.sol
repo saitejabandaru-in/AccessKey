@@ -36,8 +36,8 @@ contract AccessKey is AccessControl {
         usageSettlement = IUsageSettlement(_usageSettlement);
     }
 
-    /// @notice Convenient wrapper for verifying access
-    function hasAccess(address user, address provider) external view returns (bool) {
-        return subscriptionManager.hasAccess(user, provider);
+    /// @notice Convenient wrapper for verifying access via subscription ID
+    function hasAccess(uint256 subscriptionId) external view returns (bool) {
+        return subscriptionManager.isSubscriptionValid(subscriptionId);
     }
 }
