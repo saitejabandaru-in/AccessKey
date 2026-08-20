@@ -22,9 +22,14 @@ graph LR
     Gateway -->|3. Allow/Deny| User
 ```
 
-## Features
-- **Provider Plans:** Providers can create plans with custom duration, prices, and credits.
-- **ETH & ERC-20 Support:** Pay in native ETH or any standard ERC-20 token (e.g., USDC).
+### Core Features (V2 Architecture)
+
+- **Trustless State-Channel Settlement:** Usage metering is completely trustless. API Gateways require EIP-712 cryptographic signatures directly from the user, preventing providers from forging usage.
+- **Time-Locked Streaming Escrow:** Provider revenue is locked in a streaming escrow and unlocks linearly block-by-block, protecting users from rug-pulls and sudden service deprecation.
+- **Prorated Upgrades & Instant Refunds:** Upgrades and cancellations dynamically calculate unearned stream balances and instantly refund the subscriber.
+- **Fiat-Pegged Pricing Oracles:** Deep integration with Chainlink `AggregatorV3Interface` allows providers to price plans in USD while settling in dynamic ERC-20 amounts.
+- **Delegated Auto-Renewals:** Support for Chainlink Automation / Keepers to pull pre-approved ERC-20 tokens and seamlessly renew expired subscriptions without manual intervention.
+- **Deflationary Token Support:** Strict `balanceAfter - balanceBefore` accounting safely processes fee-on-transfer and deflationary tokens natively.
 - **Secure Architecture:** CEI patterns used everywhere, pull-over-push withdrawals, strict access control.
 - **Gas Optimized:** Utilizes `calldata`, custom errors, and efficient state packing.
 - **EIP-712 Signatures:** Secure, replay-protected signed settlements for usage.
