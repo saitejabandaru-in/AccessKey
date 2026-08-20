@@ -1,0 +1,29 @@
+name: Foundry Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run tests
+        run: forge test -vvv
+
+      - name: Run formatting check
+        run: forge fmt --check
+
+      - name: Gas snapshot check
+        run: forge snapshot --check
