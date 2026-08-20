@@ -43,20 +43,18 @@ contract PaymentManager is IPaymentManager, AccessControl {
     function getProviderBalance(address provider, address token) external view override returns (uint256) {
         return _providerBalances[provider][token];
     }
-    
+
     /// @notice Gets the accumulated protocol fees for a token
     function getProtocolFeeBalance(address token) external view returns (uint256) {
         return _protocolFees[token];
     }
 
     /// @notice Processes payment for a subscription
-    function processPayment(
-        address payer,
-        address provider,
-        address token,
-        uint256 amount,
-        uint256 subscriptionId
-    ) external payable override {
+    function processPayment(address payer, address provider, address token, uint256 amount, uint256 subscriptionId)
+        external
+        payable
+        override
+    {
         // Assume caller is SubscriptionManager, so we might want to restrict access to only SubscriptionManager later.
         // For now, anyone can process a payment into the protocol.
 
@@ -84,7 +82,7 @@ contract PaymentManager is IPaymentManager, AccessControl {
         _providerBalances[msg.sender][token] = 0;
 
         if (token == address(0)) {
-            (bool success, ) = msg.sender.call{value: amount}("");
+            (bool success,) = msg.sender.call{value: amount}("");
             if (!success) revert TransferFailed();
         } else {
             IERC20(token).safeTransfer(msg.sender, amount);
@@ -101,7 +99,7 @@ contract PaymentManager is IPaymentManager, AccessControl {
         _protocolFees[token] = 0;
 
         if (token == address(0)) {
-            (bool success, ) = to.call{value: amount}("");
+            (bool success,) = to.call{value: amount}("");
             if (!success) revert TransferFailed();
         } else {
             IERC20(token).safeTransfer(to, amount);

@@ -14,13 +14,7 @@ contract PlanManagerTest is Test {
 
     function test_CreatePlan() public {
         vm.prank(provider);
-        uint256 planId = planManager.createPlan(
-            100e18,
-            address(0),
-            30 days,
-            1000,
-            "ipfs://metadata"
-        );
+        uint256 planId = planManager.createPlan(100e18, address(0), 30 days, 1000, "ipfs://metadata");
 
         assertEq(planId, 1);
         IPlanManager.Plan memory plan = planManager.getPlan(planId);

@@ -21,11 +21,11 @@ contract AccessKeyIntegrationTest is Test {
     address public admin = address(1);
     address public provider = address(0x2);
     uint256 public providerPk = 0x2; // Same as provider address if generated this way? Wait. Let's use makeAddrAndKey for provider to do signatures.
-    
+
     // We will replace provider and user with valid sig keys.
     uint256 providerPrivKey;
     address providerAddr;
-    
+
     uint256 userPrivKey;
     address userAddr;
 
@@ -34,17 +34,14 @@ contract AccessKeyIntegrationTest is Test {
         (userAddr, userPrivKey) = makeAddrAndKey("user");
 
         vm.startPrank(admin);
-        
+
         planManager = new PlanManager();
         paymentManager = new PaymentManager(200); // 2% protocol fee
         subscriptionManager = new SubscriptionManager(address(planManager), address(paymentManager));
         usageSettlement = new UsageSettlement(address(subscriptionManager));
-        
+
         accessKey = new AccessKey(
-            address(planManager),
-            address(subscriptionManager),
-            address(paymentManager),
-            address(usageSettlement)
+            address(planManager), address(subscriptionManager), address(paymentManager), address(usageSettlement)
         );
 
         // Grant SETTLEMENT_ROLE in SubscriptionManager to UsageSettlement
@@ -83,7 +80,7 @@ contract AccessKeyIntegrationTest is Test {
         // Check balances
         uint256 providerBal = paymentManager.getProviderBalance(providerAddr, address(0));
         assertEq(providerBal, 0.098 ether); // 98% of 0.1
-        
+
         uint256 protocolFee = paymentManager.getProtocolFeeBalance(address(0));
         assertEq(protocolFee, 0.002 ether); // 2% of 0.1
 
@@ -94,11 +91,12 @@ contract AccessKeyIntegrationTest is Test {
         vm.stopPrank();
 
         // Settle Usage
-        bytes32 typeHash = keccak256("Settlement(uint256 subscriptionId,uint256 usageAmount,uint256 nonce,uint256 deadline)");
+        bytes32 typeHash =
+            keccak256("Settlement(uint256 subscriptionId,uint256 usageAmount,uint256 nonce,uint256 deadline)");
         uint256 nonce = 1;
         uint256 deadline = block.timestamp + 1 hours;
         uint256 usageAmount = 500;
-        
+
         bytes32 structHash = keccak256(abi.encode(typeHash, subId, usageAmount, nonce, deadline));
         bytes32 domainSeparator = keccak256(
             abi.encode(
@@ -110,7 +108,7 @@ contract AccessKeyIntegrationTest is Test {
             )
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
-        
+
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(providerPrivKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -139,17 +137,11 @@ contract AccessKeyIntegrationTest is Test {
 
     function test_Integration_FullWorkflowERC20() public {
         vm.prank(providerAddr);
-        uint256 planId = planManager.createPlan(
-            10 * 1e6,
-            address(usdc),
-            30 days,
-            1000,
-            "ipfs://plan-usdc"
-        );
+        uint256 planId = planManager.createPlan(10 * 1e6, address(usdc), 30 days, 1000, "ipfs://plan-usdc");
 
         vm.startPrank(userAddr);
         usdc.approve(address(paymentManager), 10 * 1e6);
-        uint256 subId = subscriptionManager.subscribe(planId);
+        subscriptionManager.subscribe(planId);
         vm.stopPrank();
 
         assertTrue(accessKey.hasAccess(userAddr, providerAddr));

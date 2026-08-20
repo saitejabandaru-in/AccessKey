@@ -26,7 +26,9 @@ interface ISubscriptionManager {
     }
 
     /// @notice Events
-    event SubscriptionCreated(uint256 indexed subscriptionId, address indexed subscriber, uint256 indexed planId, uint256 expiryTime);
+    event SubscriptionCreated(
+        uint256 indexed subscriptionId, address indexed subscriber, uint256 indexed planId, uint256 expiryTime
+    );
     event SubscriptionRenewed(uint256 indexed subscriptionId, uint256 newExpiryTime);
     event SubscriptionCancelled(uint256 indexed subscriptionId);
     event SubscriptionUpgraded(uint256 indexed subscriptionId, uint256 newPlanId);

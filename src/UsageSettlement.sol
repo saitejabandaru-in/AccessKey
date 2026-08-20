@@ -17,7 +17,8 @@ interface ISubManagerExt is ISubscriptionManager {
 contract UsageSettlement is IUsageSettlement, EIP712, AccessControl {
     ISubManagerExt public immutable subscriptionManager;
 
-    bytes32 private constant SETTLEMENT_TYPEHASH = keccak256("Settlement(uint256 subscriptionId,uint256 usageAmount,uint256 nonce,uint256 deadline)");
+    bytes32 private constant SETTLEMENT_TYPEHASH =
+        keccak256("Settlement(uint256 subscriptionId,uint256 usageAmount,uint256 nonce,uint256 deadline)");
 
     mapping(address => mapping(uint256 => bool)) private _usedNonces;
 
@@ -35,22 +36,22 @@ contract UsageSettlement is IUsageSettlement, EIP712, AccessControl {
         bytes calldata signature
     ) external override {
         if (block.timestamp > deadline) revert ExpiredDeadline();
-        
+
         ISubscriptionManager.Subscription memory sub = subscriptionManager.getSubscription(subscriptionId);
-        
+
         if (_usedNonces[sub.provider][nonce]) revert NonceAlreadyUsed();
         if (sub.consumedCredits + usageAmount > sub.allocatedCredits) revert ExceedsAllocatedCredits();
 
         bytes32 structHash = keccak256(abi.encode(SETTLEMENT_TYPEHASH, subscriptionId, usageAmount, nonce, deadline));
         bytes32 digest = _hashTypedDataV4(structHash);
-        
+
         address signer = ECDSA.recover(digest, signature);
-        
+
         // The signer must be the provider
         if (signer != sub.provider) revert InvalidSignature();
 
         _usedNonces[sub.provider][nonce] = true;
-        
+
         subscriptionManager.addConsumedCredits(subscriptionId, usageAmount);
 
         emit UsageSettled(subscriptionId, sub.provider, usageAmount, nonce);

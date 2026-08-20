@@ -17,10 +17,14 @@ interface IPlanManager {
     }
 
     /// @notice Emitted when a new plan is created
-    event PlanCreated(uint256 indexed planId, address indexed provider, uint256 price, uint256 duration, uint256 allocatedCredits);
+    event PlanCreated(
+        uint256 indexed planId, address indexed provider, uint256 price, uint256 duration, uint256 allocatedCredits
+    );
 
     /// @notice Emitted when a plan is updated
-    event PlanUpdated(uint256 indexed planId, address indexed provider, uint256 price, uint256 duration, uint256 allocatedCredits);
+    event PlanUpdated(
+        uint256 indexed planId, address indexed provider, uint256 price, uint256 duration, uint256 allocatedCredits
+    );
 
     /// @notice Emitted when a plan is activated
     event PlanActivated(uint256 indexed planId, address indexed provider);
@@ -60,7 +64,7 @@ interface IPlanManager {
 
     /// @notice Gets plan details
     function getPlan(uint256 planId) external view returns (Plan memory);
-    
+
     /// @notice Checks if a plan is valid and active
     function isPlanActive(uint256 planId) external view returns (bool);
 }

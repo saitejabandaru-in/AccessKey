@@ -20,11 +20,11 @@ contract InvariantTest is Test {
         subscriptionManager = new SubscriptionManager(address(planManager), address(paymentManager));
         usageSettlement = new UsageSettlement(address(subscriptionManager));
         subscriptionManager.grantRole(subscriptionManager.SETTLEMENT_ROLE(), address(usageSettlement));
-        
+
         targetContract(address(usageSettlement));
     }
 
-    function invariant_ConsumedCreditsNeverExceedAllocated() public {
+    function invariant_ConsumedCreditsNeverExceedAllocated() public pure {
         // Since we don't have an array of created subIds here, we check that settlement never allows exceeding
         // This is guaranteed by UsageSettlement.sol Line 36
         // We can just rely on standard stateless fuzzing for that line, or implement a handler.

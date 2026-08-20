@@ -33,13 +33,7 @@ contract ReentrancyTest is Test {
     function test_ReentrancyFails() public {
         // Simulate a payment going to the attacker
         vm.deal(address(this), 1 ether);
-        paymentManager.processPayment{value: 1 ether}(
-            address(this),
-            address(attacker),
-            address(0),
-            1 ether,
-            1
-        );
+        paymentManager.processPayment{value: 1 ether}(address(this), address(attacker), address(0), 1 ether, 1);
 
         // Attacker attempts withdrawal
         vm.startPrank(address(attacker));
@@ -50,6 +44,6 @@ contract ReentrancyTest is Test {
         // The balance remains because the withdrawal reverted
         assertEq(address(attacker).balance, 0);
         // The attack count is 0 because the entire transaction reverted
-        assertEq(attacker.attackCount(), 0); 
+        assertEq(attacker.attackCount(), 0);
     }
 }

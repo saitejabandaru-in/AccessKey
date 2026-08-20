@@ -14,10 +14,10 @@ contract FuzzTest is Test {
     function testFuzz_CreatePlan(uint256 price, uint256 duration, uint256 credits) public {
         vm.assume(duration > 0);
         vm.assume(duration < 3650 days); // reasonable max
-        
+
         vm.prank(address(0x1));
         uint256 planId = planManager.createPlan(price, address(0), duration, credits, "");
-        
+
         IPlanManager.Plan memory p = planManager.getPlan(planId);
         assertEq(p.price, price);
         assertEq(p.duration, duration);

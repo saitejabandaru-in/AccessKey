@@ -27,7 +27,7 @@ contract PlanManager is IPlanManager, AccessControl {
         if (duration == 0) revert InvalidPlanConfiguration();
 
         planId = _nextPlanId++;
-        
+
         _plans[planId] = Plan({
             planId: planId,
             provider: msg.sender,

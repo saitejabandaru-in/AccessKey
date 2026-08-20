@@ -15,19 +15,14 @@ contract AccessKey is AccessControl {
     IPaymentManager public paymentManager;
     IUsageSettlement public usageSettlement;
 
-    constructor(
-        address _planManager,
-        address _subscriptionManager,
-        address _paymentManager,
-        address _usageSettlement
-    ) {
+    constructor(address _planManager, address _subscriptionManager, address _paymentManager, address _usageSettlement) {
         planManager = IPlanManager(_planManager);
         subscriptionManager = ISubscriptionManager(_subscriptionManager);
         paymentManager = IPaymentManager(_paymentManager);
         usageSettlement = IUsageSettlement(_usageSettlement);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
-    
+
     /// @notice Allows the admin to upgrade the underlying module addresses if needed
     function setModules(
         address _planManager,

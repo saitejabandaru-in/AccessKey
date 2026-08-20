@@ -33,7 +33,7 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         if (!plan.isActive) revert IPlanManager.PlanDoesNotExist();
 
         subscriptionId = _nextSubscriptionId++;
-        
+
         uint256 expiry = block.timestamp + plan.duration;
 
         _subscriptions[subscriptionId] = Subscription({
@@ -51,11 +51,7 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         _userSubscriptions[msg.sender][plan.provider] = subscriptionId;
 
         paymentManager.processPayment{value: msg.value}(
-            msg.sender,
-            plan.provider,
-            plan.paymentToken,
-            plan.price,
-            subscriptionId
+            msg.sender, plan.provider, plan.paymentToken, plan.price, subscriptionId
         );
 
         emit SubscriptionCreated(subscriptionId, msg.sender, planId, expiry);
@@ -86,11 +82,7 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         sub.consumedCredits = 0;
 
         paymentManager.processPayment{value: msg.value}(
-            msg.sender,
-            plan.provider,
-            plan.paymentToken,
-            plan.price,
-            subscriptionId
+            msg.sender, plan.provider, plan.paymentToken, plan.price, subscriptionId
         );
 
         emit SubscriptionRenewed(subscriptionId, sub.expiryTime);
@@ -125,11 +117,7 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         sub.consumedCredits = 0;
 
         paymentManager.processPayment{value: msg.value}(
-            msg.sender,
-            newPlan.provider,
-            newPlan.paymentToken,
-            newPlan.price,
-            subscriptionId
+            msg.sender, newPlan.provider, newPlan.paymentToken, newPlan.price, subscriptionId
         );
 
         emit SubscriptionUpgraded(subscriptionId, newPlanId);
@@ -166,10 +154,10 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
 
         Subscription memory sub = _subscriptions[subId];
         if (sub.status == SubscriptionStatus.REVOKED || sub.status == SubscriptionStatus.PAUSED) return false;
-        
+
         // Cancelled subscriptions are valid until expiry
         if (block.timestamp > sub.expiryTime) return false;
-        
+
         if (sub.consumedCredits >= sub.allocatedCredits) return false;
 
         return true;
