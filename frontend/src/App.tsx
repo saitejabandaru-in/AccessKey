@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Activity, Shield, Terminal, Lock, Command, Database, Code2, Cpu, Globe, ArrowUpRight, LogOut, ChevronRight, Zap, Copy, CheckCircle2, Search, Settings, CreditCard, HelpCircle } from 'lucide-react';
 import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
 
 // Reusable animated container for stagger effects
@@ -33,6 +33,103 @@ const FadeUp = ({ children, className }: { children: React.ReactNode, className?
     {children}
   </motion.div>
 );
+
+// --- ELITE UX COMPONENTS --- //
+
+const Magnetic = ({ children }: { children: React.ReactElement }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15, mass: 0.1 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15, mass: 0.1 });
+
+  const handleMouse = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const { clientX, clientY } = e;
+    const { height, width, left, top } = ref.current.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    x.set(middleX * 0.3); // Magnetic pull strength
+    y.set(middleY * 0.3);
+  };
+
+  const reset = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      style={{ x: springX, y: springY }}
+      className="inline-block"
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const TiltCard = ({ children, className }: { children: React.ReactNode, className?: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 20 });
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7.5deg", "-7.5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
+  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], ["100%", "0%"]);
+  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], ["100%", "0%"]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+      }}
+      className={`relative ${className}`}
+    >
+      {/* 3D Glare Effect */}
+      <motion.div
+        className="absolute inset-0 z-10 rounded-[inherit] pointer-events-none"
+        style={{
+          background: "radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 60%)",
+          left: glareX,
+          top: glareY,
+          transform: "translate(-50%, -50%)",
+          width: "200%",
+          height: "200%",
+          mixBlendMode: "overlay"
+        }}
+      />
+      {children}
+    </motion.div>
+  );
+};
 
 export default function App() {
   const { address, isConnected } = useAccount();
@@ -366,7 +463,25 @@ console.log('Verifiable Stream Active:', stream.id);`;
               transition={{ duration: 0.3 }}
             >
               {/* HERO SECTION */}
-              <section className="max-w-7xl mx-auto px-6 pt-16 pb-24 border-b border-white/[0.04]">
+              <section className="max-w-7xl mx-auto px-6 pt-16 pb-24 border-b border-white/[0.04] relative">
+                {/* SVG Data Flow Background Animation */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center opacity-30">
+                  <svg width="100%" height="100%" className="absolute inset-0 max-w-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
+                    <path d="M -100 200 C 300 200, 400 400, 700 400 C 1000 400, 1100 200, 1300 200" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                    <path d="M -100 200 C 300 200, 400 400, 700 400 C 1000 400, 1100 200, 1300 200" fill="none" stroke="url(#gradientStroke)" strokeWidth="2" strokeDasharray="10 20" className="animate-[shimmer_20s_linear_infinite]" />
+                    <circle cx="700" cy="400" r="4" fill="#22c55e" className="animate-pulse" />
+                    <circle cx="300" cy="250" r="3" fill="#eab308" className="animate-pulse" style={{ animationDelay: '1s' }} />
+                    <circle cx="1000" cy="250" r="3" fill="#ef4444" className="animate-pulse" style={{ animationDelay: '2s' }} />
+                    <defs>
+                      <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="transparent" />
+                        <stop offset="50%" stopColor="rgba(255,255,255,0.5)" />
+                        <stop offset="100%" stopColor="transparent" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                   <div className="relative z-10">
                     <motion.div 
@@ -415,12 +530,16 @@ console.log('Verifiable Stream Active:', stream.id);`;
                       transition={{ delay: 0.6 }}
                       className="flex flex-wrap gap-4"
                     >
-                      <a href="https://github.com/saitejabandaru-in/AccessKey#readme" target="_blank" rel="noreferrer" className="px-6 py-3.5 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center gap-2">
-                        Read Documentation <ChevronRight className="w-4 h-4" />
-                      </a>
-                      <a href="https://github.com/saitejabandaru-in/AccessKey" target="_blank" rel="noreferrer" className="px-6 py-3.5 border border-white/10 hover:bg-white/5 text-white rounded-xl text-sm font-medium transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2 group">
-                        <Code2 className="w-4 h-4 text-[#888] group-hover:text-white transition-colors" /> View GitHub
-                      </a>
+                      <Magnetic>
+                        <a href="https://github.com/saitejabandaru-in/AccessKey#readme" target="_blank" rel="noreferrer" className="px-6 py-3.5 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center gap-2">
+                          Read Documentation <ChevronRight className="w-4 h-4" />
+                        </a>
+                      </Magnetic>
+                      <Magnetic>
+                        <a href="https://github.com/saitejabandaru-in/AccessKey" target="_blank" rel="noreferrer" className="px-6 py-3.5 border border-white/10 hover:bg-white/5 text-white rounded-xl text-sm font-medium transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2 group">
+                          <Code2 className="w-4 h-4 text-[#888] group-hover:text-white transition-colors" /> View GitHub
+                        </a>
+                      </Magnetic>
                     </motion.div>
                   </div>
 
@@ -536,11 +655,13 @@ console.log('Verifiable Stream Active:', stream.id);`;
                       { label: "API Requests Secured", value: "1.8B+", sub: "0% downtime" },
                       { label: "Keeper Payouts", value: "342 ETH", sub: "automated settlement" }
                     ].map((stat, i) => (
-                      <FadeUp key={i} className="p-6 rounded-[2rem] border border-white/5 bg-[#050505] hover:bg-[#0a0a0a] transition-colors relative overflow-hidden group cursor-default">
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <p className="text-[#666] text-xs font-mono uppercase tracking-widest mb-3">{stat.label}</p>
-                        <p className="text-4xl font-semibold tracking-tighter text-white mb-2">{stat.value}</p>
-                        <p className="text-[#555] text-xs font-medium">{stat.sub}</p>
+                      <FadeUp key={i}>
+                        <TiltCard className="h-full p-6 rounded-[2rem] border border-white/5 bg-[#050505] hover:bg-[#0a0a0a] transition-colors overflow-hidden group cursor-default">
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          <p className="text-[#666] text-xs font-mono uppercase tracking-widest mb-3 relative z-20">{stat.label}</p>
+                          <p className="text-4xl font-semibold tracking-tighter text-white mb-2 relative z-20">{stat.value}</p>
+                          <p className="text-[#555] text-xs font-medium relative z-20">{stat.sub}</p>
+                        </TiltCard>
                       </FadeUp>
                     ))}
                   </div>
@@ -572,15 +693,17 @@ console.log('Verifiable Stream Active:', stream.id);`;
                       { icon: Database, title: "Decentralized Oracles", desc: "Oracle networks can monetize high-frequency data streams directly. Escrow guarantees payment, while cryptographic signatures prevent data theft." },
                       { icon: Globe, title: "RPC & Node Providers", desc: "Replace Web2 credit card subscriptions with trustless Web3 billing. Automate usage settlement for heavy infrastructure consumers via keepers." }
                     ].map((item, i) => (
-                      <FadeUp key={i} className="p-8 rounded-[2rem] border border-white/5 bg-[#050505] hover:bg-white/[0.02] transition-all duration-500 group relative overflow-hidden cursor-default">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.02] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/[0.04] transition-colors" />
-                        <div className="w-14 h-14 rounded-2xl border border-white/10 bg-[#111] flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-xl">
-                          <item.icon className="w-6 h-6 text-white" />
-                        </div>
-                        <h3 className="text-2xl font-medium tracking-tight mb-4 text-white">{item.title}</h3>
-                        <p className="text-[#777] text-sm leading-relaxed font-medium">
-                          {item.desc}
-                        </p>
+                      <FadeUp key={i}>
+                        <TiltCard className="h-full p-8 rounded-[2rem] border border-white/5 bg-[#050505] hover:bg-white/[0.02] transition-all duration-500 group overflow-hidden cursor-default">
+                          <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.02] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/[0.04] transition-colors" />
+                          <div className="w-14 h-14 rounded-2xl border border-white/10 bg-[#111] flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 shadow-xl relative z-20">
+                            <item.icon className="w-6 h-6 text-white" />
+                          </div>
+                          <h3 className="text-2xl font-medium tracking-tight mb-4 text-white relative z-20">{item.title}</h3>
+                          <p className="text-[#777] text-sm leading-relaxed font-medium relative z-20">
+                            {item.desc}
+                          </p>
+                        </TiltCard>
                       </FadeUp>
                     ))}
                   </div>
