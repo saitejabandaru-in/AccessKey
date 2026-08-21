@@ -57,6 +57,10 @@ export default function App() {
   // DEMO MODE STATE
   const [isDemoMode, setIsDemoMode] = useState(false);
 
+  // UX: Interactive Terminal State
+  const [terminalState, setTerminalState] = useState<'code' | 'executing' | 'success'>('code');
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
+
   // Spotlight effect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -122,6 +126,34 @@ export default function App() {
 
   const shortenAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const runTerminalSimulation = () => {
+    if (terminalState !== 'code') return;
+    setTerminalState('executing');
+    setTerminalLogs([]);
+    
+    const sequence = [
+      { text: "> Initializing AccessKey SDK v2.4.1...", delay: 0 },
+      { text: "> Connecting to injected Web3 Provider...", delay: 500 },
+      { text: "> Provider connected: window.ethereum (Chain 1)", delay: 1000 },
+      { text: "> Authenticating Session Key for 50,000 credits...", delay: 1800 },
+      { text: "> ⏳ Awaiting cryptographic signature...", delay: 2400 },
+      { text: "> ✅ Signature verified. Escrow locked.", delay: 3500 },
+      { text: "> 🟢 Verifiable Stream Active: 0x4B2a...F9AC", delay: 4200 },
+    ];
+
+    sequence.forEach(({ text, delay }, index) => {
+      setTimeout(() => {
+        setTerminalLogs(prev => [...prev, text]);
+        if (index === sequence.length - 1) {
+          setTimeout(() => {
+            setTerminalState('success');
+            toast.success("Stream Authorized", { description: "You just simulated a trustless data stream!" });
+          }, 800);
+        }
+      }, delay);
+    });
   };
 
   const codeSnippet = `// Initialize AccessKey SDK for autonomous billing
@@ -406,43 +438,88 @@ console.log('Verifiable Stream Active:', stream.id);`;
                       
                       <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/[0.02]">
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.4)] hover:scale-110 transition-transform cursor-pointer" />
+                          <div className="w-3 h-3 rounded-full bg-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.4)] hover:scale-110 transition-transform cursor-pointer" onClick={() => setTerminalState('code')} />
                           <div className="w-3 h-3 rounded-full bg-yellow-500/80 shadow-[0_0_10px_rgba(234,179,8,0.4)] hover:scale-110 transition-transform cursor-pointer" />
                           <div className="w-3 h-3 rounded-full bg-green-500/80 shadow-[0_0_10px_rgba(34,197,94,0.4)] hover:scale-110 transition-transform cursor-pointer" />
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-[11px] font-mono text-[#666] uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/5">integration.ts</span>
-                          <button 
-                            onClick={() => handleCopy(codeSnippet, 'snippet')}
-                            className="text-[#666] hover:text-white transition-colors bg-white/5 p-1.5 rounded-md hover:bg-white/10"
-                            title="Copy code"
-                          >
-                            {copiedId === 'snippet' ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                          </button>
+                          <span className="text-[11px] font-mono text-[#666] uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                            {terminalState === 'code' ? 'integration.ts' : 'terminal'}
+                          </span>
+                          {terminalState === 'code' ? (
+                            <button 
+                              onClick={runTerminalSimulation}
+                              className="text-black bg-white hover:bg-[#e0e0e0] px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 transition-colors"
+                            >
+                              ▶ Execute
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => { setTerminalState('code'); setTerminalLogs([]); }}
+                              className="text-white bg-white/10 hover:bg-white/20 px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 transition-colors"
+                            >
+                              Reset
+                            </button>
+                          )}
                         </div>
                       </div>
                       
-                      <div className="p-8 overflow-x-auto text-[13px] font-mono leading-loose">
-                        <pre>
-                          <code className="text-[#ccc]" dangerouslySetInnerHTML={{
-                            __html: codeSnippet.split('\n').map((line, i) => (
-                              `<div class="table-row group/line hover:bg-white/[0.02] transition-colors">
-                                <span class="table-cell pr-6 text-[#333] select-none text-right border-r border-white/5 mr-4">${i + 1}</span>
-                                <span class="table-cell whitespace-pre pl-4">${
-                                  line.replace(/import|const|new|await|console/g, match => 
-                                    `<span class="text-white font-semibold drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">${match}</span>`
-                                  ).replace(/'.*?'/g, match => 
-                                    `<span class="text-green-400/80">${match}</span>`
-                                  ).replace(/\/\/.*$/g, match => 
-                                    `<span class="text-[#555] italic">${match}</span>`
-                                  ).replace(/AccessKey|sdk/g, match => 
-                                    `<span class="text-blue-400/80">${match}</span>`
-                                  )
-                                }</span>
-                              </div>`
-                            )).join('')
-                          }} />
-                        </pre>
+                      <div className="p-8 overflow-x-auto text-[13px] font-mono leading-loose min-h-[320px]">
+                        <AnimatePresence mode="wait">
+                          {terminalState === 'code' ? (
+                            <motion.pre 
+                              key="code"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                            >
+                              <code className="text-[#ccc]" dangerouslySetInnerHTML={{
+                                __html: codeSnippet.split('\n').map((line, i) => (
+                                  `<div class="table-row group/line hover:bg-white/[0.02] transition-colors">
+                                    <span class="table-cell pr-6 text-[#333] select-none text-right border-r border-white/5 mr-4">${i + 1}</span>
+                                    <span class="table-cell whitespace-pre pl-4">${
+                                      line.replace(/import|const|new|await|console/g, match => 
+                                        `<span class="text-white font-semibold drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">${match}</span>`
+                                      ).replace(/'.*?'/g, match => 
+                                        `<span class="text-green-400/80">${match}</span>`
+                                      ).replace(/\/\/.*$/g, match => 
+                                        `<span class="text-[#555] italic">${match}</span>`
+                                      ).replace(/AccessKey|sdk/g, match => 
+                                        `<span class="text-blue-400/80">${match}</span>`
+                                      )
+                                    }</span>
+                                  </div>`
+                                )).join('')
+                              }} />
+                            </motion.pre>
+                          ) : (
+                            <motion.div 
+                              key="terminal"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="flex flex-col gap-2 font-mono text-xs md:text-[13px]"
+                            >
+                              {terminalLogs.map((log, i) => (
+                                <motion.div 
+                                  key={i}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  className={log.includes('✅') || log.includes('🟢') ? 'text-green-400 font-semibold' : log.includes('⏳') ? 'text-yellow-400' : 'text-[#888]'}
+                                >
+                                  {log}
+                                </motion.div>
+                              ))}
+                              {terminalState === 'executing' && (
+                                <motion.div 
+                                  animate={{ opacity: [1, 0, 1] }} 
+                                  transition={{ repeat: Infinity, duration: 0.8 }}
+                                  className="w-2.5 h-4 bg-white/80 mt-1"
+                                />
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
                   </motion.div>
