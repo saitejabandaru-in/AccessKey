@@ -75,7 +75,7 @@ contract PaymentManager is IPaymentManager, AccessControl {
 
         if (keeperReward > 0 && keeper != address(0)) {
             if (token == address(0)) {
-                (bool success, ) = keeper.call{value: keeperReward}("");
+                (bool success,) = keeper.call{value: keeperReward}("");
                 if (!success) revert TransferFailed();
             } else {
                 IERC20(token).safeTransfer(keeper, keeperReward);

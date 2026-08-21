@@ -9,13 +9,7 @@ interface AggregatorV3Interface {
     function latestRoundData()
         external
         view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
 }
 
 /// @title PlanManager
@@ -50,7 +44,7 @@ contract PlanManager is IPlanManager, AccessControl {
         if (!isTokenWhitelisted[paymentToken]) revert TokenNotWhitelisted();
 
         planId = _nextPlanId++;
-        
+
         _plans[planId] = Plan({
             planId: planId,
             provider: msg.sender,
@@ -125,15 +119,15 @@ contract PlanManager is IPlanManager, AccessControl {
     function getDynamicPrice(uint256 planId) external view override returns (uint256) {
         Plan memory plan = _plans[planId];
         if (plan.planId == 0) revert PlanDoesNotExist();
-        
+
         if (plan.priceFeed == address(0)) {
             return plan.price; // Native token price
         }
-        
+
         AggregatorV3Interface oracle = AggregatorV3Interface(plan.priceFeed);
-        (, int256 price, , uint256 updatedAt, ) = oracle.latestRoundData();
+        (, int256 price,, uint256 updatedAt,) = oracle.latestRoundData();
         if (price <= 0) revert OracleError();
-        
+
         // Oracle Stale Check
         if (plan.oracleHeartbeat > 0 && block.timestamp - updatedAt > plan.oracleHeartbeat) {
             revert StalePrice();

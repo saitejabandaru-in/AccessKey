@@ -12,7 +12,8 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 /// @notice Trustless settlement of API usage via user-signed state channels and session keys
 contract UsageSettlement is IUsageSettlement, AccessControl, EIP712 {
     bytes32 public constant SETTLEMENT_ROLE = keccak256("SETTLEMENT_ROLE");
-    bytes32 public constant USAGE_TYPEHASH = keccak256("Usage(uint256 subscriptionId,uint256 consumedCredits,uint256 deadline)");
+    bytes32 public constant USAGE_TYPEHASH =
+        keccak256("Usage(uint256 subscriptionId,uint256 consumedCredits,uint256 deadline)");
 
     ISubscriptionManager public subscriptionManager;
     IPlanManager public planManager;
@@ -31,23 +32,16 @@ contract UsageSettlement is IUsageSettlement, AccessControl, EIP712 {
         emit SessionKeyAuthorized(msg.sender, sessionKey);
     }
 
-    function _settleUsage(
-        uint256 subscriptionId,
-        uint256 consumedCredits,
-        uint256 deadline,
-        bytes calldata signature
-    ) internal {
+    function _settleUsage(uint256 subscriptionId, uint256 consumedCredits, uint256 deadline, bytes calldata signature)
+        internal
+    {
         if (block.timestamp > deadline) revert ExpiredDeadline();
-        
+
         ISubscriptionManager.Subscription memory sub = subscriptionManager.getSubscription(subscriptionId);
         if (sub.subscriptionId == 0) revert InvalidSubscription();
 
-        bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(
-            USAGE_TYPEHASH,
-            subscriptionId,
-            consumedCredits,
-            deadline
-        )));
+        bytes32 digest =
+            _hashTypedDataV4(keccak256(abi.encode(USAGE_TYPEHASH, subscriptionId, consumedCredits, deadline)));
 
         // Verify that the signature is from the subscriber OR their authorized session key
         address signer = ECDSA.recover(digest, signature);
@@ -65,12 +59,11 @@ contract UsageSettlement is IUsageSettlement, AccessControl, EIP712 {
         emit UsageSettled(subscriptionId, consumedCredits);
     }
 
-    function settleUsage(
-        uint256 subscriptionId,
-        uint256 consumedCredits,
-        uint256 deadline,
-        bytes calldata signature
-    ) external override onlyRole(SETTLEMENT_ROLE) {
+    function settleUsage(uint256 subscriptionId, uint256 consumedCredits, uint256 deadline, bytes calldata signature)
+        external
+        override
+        onlyRole(SETTLEMENT_ROLE)
+    {
         _settleUsage(subscriptionId, consumedCredits, deadline, signature);
     }
 
@@ -81,9 +74,8 @@ contract UsageSettlement is IUsageSettlement, AccessControl, EIP712 {
         bytes[] calldata signatures
     ) external override onlyRole(SETTLEMENT_ROLE) {
         if (
-            subscriptionIds.length != consumedCredits.length ||
-            subscriptionIds.length != deadlines.length ||
-            subscriptionIds.length != signatures.length
+            subscriptionIds.length != consumedCredits.length || subscriptionIds.length != deadlines.length
+                || subscriptionIds.length != signatures.length
         ) {
             revert ArrayLengthMismatch();
         }
@@ -96,7 +88,7 @@ contract UsageSettlement is IUsageSettlement, AccessControl, EIP712 {
     function getConsumedCredits(uint256 subscriptionId) external view override returns (uint256) {
         return _consumedCredits[subscriptionId];
     }
-    
+
     function getSessionKey(address subscriber) external view override returns (address) {
         return _userSessionKeys[subscriber];
     }

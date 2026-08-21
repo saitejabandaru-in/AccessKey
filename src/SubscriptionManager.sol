@@ -119,7 +119,14 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         uint256 keeperReward = (price * 100) / 10000;
 
         paymentManager.processPayment{value: msg.value}(
-            sub.subscriber, plan.provider, plan.paymentToken, price, plan.duration, newSubscriptionId, msg.sender, keeperReward
+            sub.subscriber,
+            plan.provider,
+            plan.paymentToken,
+            price,
+            plan.duration,
+            newSubscriptionId,
+            msg.sender,
+            keeperReward
         );
 
         _subscriptions[newSubscriptionId] = Subscription({
@@ -165,7 +172,14 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
 
         // 2. Create the new subscription
         paymentManager.processPayment{value: msg.value}(
-            msg.sender, newPlan.provider, newPlan.paymentToken, newPrice, newPlan.duration, _nextSubscriptionId, address(0), 0
+            msg.sender,
+            newPlan.provider,
+            newPlan.paymentToken,
+            newPrice,
+            newPlan.duration,
+            _nextSubscriptionId,
+            address(0),
+            0
         );
 
         newSubscriptionId = _nextSubscriptionId++;

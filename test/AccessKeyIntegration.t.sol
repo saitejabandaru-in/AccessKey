@@ -54,7 +54,8 @@ contract AccessKeyIntegrationTest is Test {
         vm.startPrank(providerAddr);
         // Let's just use raw token price for simplicity since Oracle math gets complex with USDC decimals vs ETH
         // We set priceFeed to address(0) for raw tokens. 10 USDC = 10 * 1e6
-        uint256 planId = planManager.createPlan(10 * 1e6, address(usdc), address(0), 86400, 30 days, 1000, "ipfs://plan");
+        uint256 planId =
+            planManager.createPlan(10 * 1e6, address(usdc), address(0), 86400, 30 days, 1000, "ipfs://plan");
         vm.stopPrank();
 
         // 2. User subscribes

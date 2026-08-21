@@ -15,8 +15,22 @@ interface IPlanManager {
         string metadataURI;
     }
 
-    event PlanCreated(uint256 indexed planId, address indexed provider, uint256 price, address priceFeed, uint256 duration, uint256 allocatedCredits);
-    event PlanUpdated(uint256 indexed planId, address indexed provider, uint256 price, address priceFeed, uint256 duration, uint256 allocatedCredits);
+    event PlanCreated(
+        uint256 indexed planId,
+        address indexed provider,
+        uint256 price,
+        address priceFeed,
+        uint256 duration,
+        uint256 allocatedCredits
+    );
+    event PlanUpdated(
+        uint256 indexed planId,
+        address indexed provider,
+        uint256 price,
+        address priceFeed,
+        uint256 duration,
+        uint256 allocatedCredits
+    );
     event PlanActivated(uint256 indexed planId, address indexed provider);
     event PlanDeactivated(uint256 indexed planId, address indexed provider);
     event TokenWhitelisted(address indexed token, bool isWhitelisted);
