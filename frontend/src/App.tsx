@@ -1,9 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { Activity, Shield, Terminal, Lock, Command, Database, Code2, Cpu, Globe, ArrowUpRight } from 'lucide-react';
+import { Activity, Shield, Terminal, Lock, Command, Database, Code2, Cpu, Globe, ArrowUpRight, LogOut } from 'lucide-react';
+import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi';
+import { injected } from 'wagmi/connectors';
 
 export default function App() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const { address, isConnected } = useAccount();
+  const { connect, isPending: isConnecting } = useConnect();
+  const { disconnect } = useDisconnect();
+  const { data: ensName } = useEnsName({ address });
+
   const [activeTab, setActiveTab] = useState<'overview' | 'dashboard'>('overview');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,13 +27,19 @@ export default function App() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Auto switch to dashboard when connected
+  useEffect(() => {
+    if (isConnected) {
+      setActiveTab('dashboard');
+    }
+  }, [isConnected]);
+
   const handleConnect = () => {
-    setIsConnecting(true);
-    setTimeout(() => {
-      setIsConnecting(false);
-      setIsConnected(true);
-      setActiveTab('dashboard'); // Auto switch to dashboard on connect
-    }, 1200);
+    connect({ connector: injected() });
+  };
+
+  const shortenAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
   const codeSnippet = `// Integrate AccessKey natively into your protocol
@@ -84,11 +95,11 @@ console.log('Stream initialized:', session.streamId);`;
             </div>
             
             <button 
-              onClick={!isConnected ? handleConnect : () => setIsConnected(false)}
+              onClick={!isConnected ? handleConnect : () => disconnect()}
               disabled={isConnecting}
               className={`relative overflow-hidden rounded-full px-5 py-1.5 text-[13px] font-medium transition-all duration-300 ${
                 isConnected 
-                  ? 'border border-white/10 bg-white/5 text-white hover:bg-white/10' 
+                  ? 'border border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-red-500/30 group' 
                   : 'bg-white text-black hover:scale-[1.02] active:scale-95'
               }`}
             >
@@ -100,8 +111,9 @@ console.log('Stream initialized:', session.streamId);`;
                   </>
                 ) : isConnected ? (
                   <>
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                    <span className="font-mono">saiteja.eth</span>
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] group-hover:bg-red-500 group-hover:shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                    <span className="font-mono group-hover:hidden">{ensName || (address ? shortenAddress(address) : '')}</span>
+                    <span className="font-mono hidden group-hover:inline-block text-red-400">Disconnect</span>
                   </>
                 ) : (
                   <span>Launch App</span>
@@ -180,22 +192,22 @@ console.log('Stream initialized:', session.streamId);`;
                     </div>
                     <div className="p-6 overflow-x-auto text-sm font-mono leading-relaxed">
                       <pre>
-                        <code className="text-[#ccc]">
-                          {codeSnippet.split('\n').map((line, i) => (
-                            <div key={i} className="table-row">
-                              <span className="table-cell pr-4 text-[#444] select-none text-right">{i + 1}</span>
-                              <span className="table-cell whitespace-pre">
-                                {line.replace(/import|const|new|await|console/g, match => 
+                        <code className="text-[#ccc]" dangerouslySetInnerHTML={{
+                          __html: codeSnippet.split('\n').map((line, i) => (
+                            `<div class="table-row">
+                              <span class="table-cell pr-4 text-[#444] select-none text-right">${i + 1}</span>
+                              <span class="table-cell whitespace-pre">${
+                                line.replace(/import|const|new|await|console/g, match => 
                                   `<span class="text-white font-medium">${match}</span>`
                                 ).replace(/'.*?'/g, match => 
                                   `<span class="text-[#888]">${match}</span>`
                                 ).replace(/\/\/.*$/g, match => 
                                   `<span class="text-[#555]">${match}</span>`
-                                )}
-                              </span>
-                            </div>
-                          ))}
-                        </code>
+                                )
+                              }</span>
+                            </div>`
+                          )).join('')
+                        }} />
                       </pre>
                     </div>
                   </div>
@@ -292,7 +304,7 @@ console.log('Stream initialized:', session.streamId);`;
                       <h3 className="text-3xl font-medium tracking-tight mb-2">Subscriber Dashboard</h3>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
-                        <p className="text-[#888] text-sm font-mono">Managing access for 0x8aF...3e9C</p>
+                        <p className="text-[#888] text-sm font-mono">Managing access for {ensName || (address ? shortenAddress(address) : '')}</p>
                       </div>
                     </div>
                     
@@ -345,8 +357,8 @@ console.log('Stream initialized:', session.streamId);`;
                         <button className="px-3 py-1.5 border border-white/10 hover:border-white/30 bg-[#111] rounded-md text-[12px] font-medium transition-all text-[#aaa] hover:text-white">
                           Rotate Key
                         </button>
-                        <button className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-md text-[12px] font-medium transition-all">
-                          Terminate
+                        <button className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-md text-[12px] font-medium transition-all flex items-center gap-1">
+                          <LogOut className="w-3 h-3" /> Terminate
                         </button>
                       </div>
                     </div>
@@ -380,8 +392,8 @@ console.log('Stream initialized:', session.streamId);`;
                         <button className="px-3 py-1.5 border border-white/10 hover:border-white/30 bg-[#111] rounded-md text-[12px] font-medium transition-all text-[#aaa] hover:text-white">
                           Renew Stream
                         </button>
-                        <button className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-md text-[12px] font-medium transition-all">
-                          Terminate
+                        <button className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-md text-[12px] font-medium transition-all flex items-center gap-1">
+                          <LogOut className="w-3 h-3" /> Terminate
                         </button>
                       </div>
                     </div>
