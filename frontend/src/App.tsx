@@ -1,189 +1,246 @@
-import { useState } from 'react'
-import { Activity, Key, Shield, Zap, RefreshCw, LogOut } from 'lucide-react'
+import { useState } from 'react';
+import { Activity, Shield, Terminal, ArrowRight, CheckCircle2, ChevronRight, Lock } from 'lucide-react';
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
-  const [activeTab, setActiveTab] = useState<'discover' | 'dashboard'>('discover');
+  const [activeTab, setActiveTab] = useState<'overview' | 'dashboard'>('overview');
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[#0a0a0a] text-[#ededed] font-sans selection:bg-[#ededed] selection:text-[#0a0a0a]">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <div className="bg-indigo-500 p-1.5 rounded-lg">
-                <Key className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-                AccessKey
-              </span>
+      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 bg-white rounded-sm flex items-center justify-center">
+              <Lock className="w-3 h-3 text-black" />
             </div>
-            
-            <div className="flex gap-4">
-              <button 
-                onClick={() => setIsConnected(!isConnected)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                  isConnected 
-                    ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                    : 'bg-indigo-500 text-white hover:bg-indigo-400 shadow-lg shadow-indigo-500/20'
-                }`}
-              >
-                {isConnected ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    0x8aF...3e9C
-                  </span>
-                ) : 'Connect Wallet'}
-              </button>
-            </div>
+            <span className="text-sm font-semibold tracking-tight">AccessKey</span>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <a href="#" className="text-sm text-[#888] hover:text-white transition-colors">Documentation</a>
+            <a href="#" className="text-sm text-[#888] hover:text-white transition-colors">Developers</a>
+            <button 
+              onClick={() => setIsConnected(!isConnected)}
+              className="text-sm font-medium px-4 py-1.5 rounded-full border border-white/10 hover:bg-white hover:text-black transition-all"
+            >
+              {isConnected ? '0x8aF...3e9C' : 'Connect Wallet'}
+            </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-6xl mx-auto px-6 py-20">
         {/* Header Section */}
-        <div className="mb-12 text-center space-y-4">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-            Decentralized API Subscriptions
+        <div className="max-w-3xl mb-24">
+          <h1 className="text-5xl md:text-6xl font-medium tracking-tighter leading-tight mb-6">
+            Verifiable API <br /> Access Protocol.
           </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-            Trustless metering, streaming escrow, and fiat-pegged pricing. 
-            Subscribe to premium Web3 APIs securely.
+          <p className="text-xl text-[#888] leading-relaxed max-w-xl">
+            A cryptographic authorization layer for data providers. Trustless metering, native stablecoin settlements, and session-key abstraction.
           </p>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-slate-900 p-1 rounded-2xl inline-flex gap-1 border border-slate-800">
+          <div className="mt-8 flex gap-4">
             <button 
-              onClick={() => setActiveTab('discover')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                activeTab === 'discover' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              onClick={() => setActiveTab('overview')}
+              className={`px-5 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'overview' ? 'bg-white text-black' : 'bg-white/5 text-[#888] hover:bg-white/10 hover:text-white'
               }`}
             >
-              Discover Plans
+              Explore Plans
             </button>
             <button 
               onClick={() => setActiveTab('dashboard')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                activeTab === 'dashboard' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              className={`px-5 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'dashboard' ? 'bg-white text-black' : 'bg-white/5 text-[#888] hover:bg-white/10 hover:text-white'
               }`}
             >
-              My Subscriptions
+              Manage Subscriptions
             </button>
           </div>
         </div>
 
         {/* Content */}
-        {activeTab === 'discover' ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Plan Card 1 */}
-            <div className="bg-slate-900/50 rounded-3xl p-8 border border-slate-800 hover:border-indigo-500/50 transition-all group relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all" />
-              <div className="mb-8">
-                <span className="bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-                  Basic Tier
-                </span>
-                <h3 className="text-2xl font-bold mt-4">AI Vision API</h3>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold">$49</span>
-                  <span className="text-slate-400 font-medium">/month</span>
-                </div>
-              </div>
+        {activeTab === 'overview' ? (
+          <div className="space-y-24">
+            {/* Bento Grid layout for plans */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3 text-slate-300">
-                  <Zap className="w-5 h-5 text-indigo-400" />
-                  <span>10,000 Credits / Month</span>
-                </li>
-                <li className="flex items-center gap-3 text-slate-300">
-                  <Shield className="w-5 h-5 text-indigo-400" />
-                  <span>Trustless Session Keys</span>
-                </li>
-              </ul>
-              
-              <button className="w-full py-3 px-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl font-semibold transition-all">
-                Subscribe via USDC
-              </button>
-            </div>
-
-            {/* Plan Card 2 */}
-            <div className="bg-gradient-to-b from-indigo-900/40 to-slate-900/50 rounded-3xl p-8 border border-indigo-500/30 hover:border-indigo-500/60 transition-all relative overflow-hidden transform md:-translate-y-4 shadow-2xl shadow-indigo-500/10">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-cyan-400" />
-              <div className="mb-8">
-                <span className="bg-gradient-to-r from-indigo-500 to-cyan-400 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-                  Pro Tier (Popular)
-                </span>
-                <h3 className="text-2xl font-bold mt-4">Enterprise Node RPC</h3>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold">$199</span>
-                  <span className="text-slate-400 font-medium">/month</span>
-                </div>
-              </div>
-              
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center gap-3 text-slate-300">
-                  <Zap className="w-5 h-5 text-cyan-400" />
-                  <span>1,000,000 Credits / Month</span>
-                </li>
-                <li className="flex items-center gap-3 text-slate-300">
-                  <RefreshCw className="w-5 h-5 text-cyan-400" />
-                  <span>Delegated Auto-Renewals</span>
-                </li>
-              </ul>
-              
-              <button className="w-full py-3 px-4 bg-white text-indigo-950 hover:bg-slate-100 rounded-xl font-bold transition-all">
-                Subscribe via WETH
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8">
-            {!isConnected ? (
-              <div className="text-center py-12">
-                <Key className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-300">Wallet Not Connected</h3>
-                <p className="text-slate-500 mt-2">Connect your wallet to view active API subscriptions.</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-6">
-                  <div>
-                    <h3 className="text-xl font-bold">Active Subscriptions</h3>
-                    <p className="text-slate-400 text-sm mt-1">Manage your keys and stream balances.</p>
+              {/* Plan 1 */}
+              <div className="group border border-white/10 rounded-2xl p-8 bg-[#111] hover:bg-[#161616] transition-colors relative overflow-hidden flex flex-col justify-between min-h-[400px]">
+                <div>
+                  <div className="flex justify-between items-start mb-6">
+                    <span className="text-xs font-mono text-[#888] uppercase tracking-widest">Base Tier</span>
+                    <Terminal className="w-5 h-5 text-[#888]" />
                   </div>
+                  <h3 className="text-2xl font-medium mb-2">Standard Oracle Feed</h3>
+                  <p className="text-[#888] text-sm leading-relaxed max-w-sm">
+                    Access high-fidelity historical data endpoints. Ideal for indexing and standard analytics workflows.
+                  </p>
                 </div>
                 
-                {/* Active Sub Item */}
-                <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 hover:border-slate-700 transition-all">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                      <Activity className="w-8 h-8 text-indigo-400" />
+                <div className="mt-12">
+                  <div className="flex items-end gap-2 mb-6">
+                    <span className="text-4xl font-medium tracking-tight">49.00</span>
+                    <span className="text-[#888] pb-1">USDC / mo</span>
+                  </div>
+                  
+                  <div className="space-y-3 mb-8">
+                    <div className="flex items-center gap-3 text-sm text-[#ccc]">
+                      <CheckCircle2 className="w-4 h-4 text-[#666]" />
+                      <span>10,000 requests per month</span>
                     </div>
-                    <div>
-                      <h4 className="text-lg font-bold">AI Vision API</h4>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span className="text-sm text-slate-400">Active • Expires in 15 days</span>
-                      </div>
+                    <div className="flex items-center gap-3 text-sm text-[#ccc]">
+                      <CheckCircle2 className="w-4 h-4 text-[#666]" />
+                      <span>L2 Settlement support</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="flex-1 md:w-48 bg-slate-900 rounded-full h-3 border border-slate-800 overflow-hidden">
-                      <div className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full" style={{ width: '45%' }}></div>
-                    </div>
-                    <span className="text-sm font-medium text-slate-300 whitespace-nowrap">4,500 / 10k Credits</span>
-                  </div>
+                  <button className="w-full py-3 bg-white/5 hover:bg-white text-white hover:text-black rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2">
+                    Initialize Stream <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-                  <div className="flex gap-2 w-full md:w-auto">
-                    <button className="flex-1 md:flex-none px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold transition-all">
-                      Manage Keys
-                    </button>
-                    <button className="flex-1 md:flex-none px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2">
-                      <LogOut className="w-4 h-4" /> Cancel & Refund
-                    </button>
+              {/* Plan 2 */}
+              <div className="group border border-white/10 rounded-2xl p-8 bg-[#111] hover:bg-[#161616] transition-colors relative overflow-hidden flex flex-col justify-between min-h-[400px]">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] rounded-full blur-3xl" />
+                
+                <div>
+                  <div className="flex justify-between items-start mb-6">
+                    <span className="text-xs font-mono text-white uppercase tracking-widest">Enterprise</span>
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-medium mb-2">High-Frequency Node</h3>
+                  <p className="text-[#888] text-sm leading-relaxed max-w-sm">
+                    Unrestricted mempool access and advanced state reads. Engineered for MEV searchers and institutional quant desks.
+                  </p>
+                </div>
+                
+                <div className="mt-12">
+                  <div className="flex items-end gap-2 mb-6">
+                    <span className="text-4xl font-medium tracking-tight">199.00</span>
+                    <span className="text-[#888] pb-1">WETH / mo</span>
+                  </div>
+                  
+                  <div className="space-y-3 mb-8">
+                    <div className="flex items-center gap-3 text-sm text-[#ccc]">
+                      <CheckCircle2 className="w-4 h-4 text-[#666]" />
+                      <span>1,000,000 requests per month</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-[#ccc]">
+                      <CheckCircle2 className="w-4 h-4 text-[#666]" />
+                      <span>Keeper-automated renewals</span>
+                    </div>
+                  </div>
+                  
+                  <button className="w-full py-3 bg-white text-black hover:bg-[#ccc] rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2">
+                    Initialize Stream <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Technical Detail Section */}
+            <div className="border-t border-white/10 pt-16">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div>
+                  <div className="w-10 h-10 border border-white/10 rounded-lg flex items-center justify-center mb-6">
+                    <Lock className="w-4 h-4 text-[#888]" />
+                  </div>
+                  <h4 className="text-base font-medium mb-2">Trustless Escrow</h4>
+                  <p className="text-sm text-[#888] leading-relaxed">
+                    Capital is locked in verifiable streaming contracts. Providers are only compensated for provably consumed requests.
+                  </p>
+                </div>
+                <div>
+                  <div className="w-10 h-10 border border-white/10 rounded-lg flex items-center justify-center mb-6">
+                    <Terminal className="w-4 h-4 text-[#888]" />
+                  </div>
+                  <h4 className="text-base font-medium mb-2">Session Key Architecture</h4>
+                  <p className="text-sm text-[#888] leading-relaxed">
+                    Authorize ephemeral ECDSA keypairs to sign payload consumption without exposing primary custody wallets.
+                  </p>
+                </div>
+                <div>
+                  <div className="w-10 h-10 border border-white/10 rounded-lg flex items-center justify-center mb-6">
+                    <Activity className="w-4 h-4 text-[#888]" />
+                  </div>
+                  <h4 className="text-base font-medium mb-2">Keeper Network</h4>
+                  <p className="text-sm text-[#888] leading-relaxed">
+                    Built-in bounty mechanisms incentivize decentralized infrastructure to automatically execute state renewals.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="border border-white/10 rounded-2xl bg-[#111] p-12 min-h-[500px]">
+            {!isConnected ? (
+              <div className="h-full flex flex-col items-center justify-center text-center space-y-6 pt-12">
+                <div className="w-16 h-16 border border-white/10 rounded-2xl flex items-center justify-center bg-[#161616]">
+                  <Lock className="w-6 h-6 text-[#666]" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Authentication Required</h3>
+                  <p className="text-[#888] text-sm max-w-sm mx-auto">
+                    Please connect your Ethereum wallet to query your active cryptographic access streams.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setIsConnected(true)}
+                  className="px-6 py-2.5 bg-white text-black hover:bg-[#ccc] rounded-lg text-sm font-medium transition-colors"
+                >
+                  Connect Wallet
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="flex justify-between items-end mb-12">
+                  <div>
+                    <h3 className="text-2xl font-medium tracking-tight mb-2">Active Streams</h3>
+                    <p className="text-[#888] text-sm">Managing cryptographic access for 0x8aF...3e9C</p>
+                  </div>
+                  <button className="text-sm text-[#888] hover:text-white flex items-center gap-1 transition-colors">
+                    View execution logs <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="border border-white/10 rounded-xl bg-[#0a0a0a] overflow-hidden">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/5 text-xs text-[#666] font-mono uppercase tracking-wider">
+                    <div className="col-span-4">Service Provider</div>
+                    <div className="col-span-4">Consumption Status</div>
+                    <div className="col-span-4 text-right">Actions</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-12 gap-4 p-6 items-center hover:bg-[#111] transition-colors">
+                    <div className="col-span-4 flex items-center gap-4">
+                      <div className="w-10 h-10 border border-white/10 rounded-lg flex items-center justify-center bg-[#161616]">
+                        <Activity className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm">Standard Oracle Feed</div>
+                        <div className="text-xs text-[#888] mt-1 font-mono">ID: 0x4B2...F9A</div>
+                      </div>
+                    </div>
+                    
+                    <div className="col-span-4">
+                      <div className="flex justify-between text-xs text-[#888] mb-2 font-mono">
+                        <span>4,500 REQ</span>
+                        <span>10,000 MAX</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-white w-[45%]" />
+                      </div>
+                    </div>
+                    
+                    <div className="col-span-4 flex justify-end gap-3">
+                      <button className="px-4 py-2 border border-white/10 hover:bg-white/5 rounded-md text-xs font-medium transition-colors">
+                        Rotate Key
+                      </button>
+                      <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-md text-xs font-medium transition-colors">
+                        Terminate
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -191,8 +248,19 @@ function App() {
           </div>
         )}
       </main>
+
+      <footer className="border-t border-white/5 mt-24">
+        <div className="max-w-6xl mx-auto px-6 py-12 flex justify-between items-center text-sm text-[#666]">
+          <p>© 2026 AccessKey Protocol. MIT License.</p>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-white transition-colors">GitHub</a>
+            <a href="#" className="hover:text-white transition-colors">Audit Report</a>
+            <a href="#" className="hover:text-white transition-colors">Etherscan</a>
+          </div>
+        </div>
+      </footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
