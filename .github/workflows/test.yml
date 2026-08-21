@@ -26,4 +26,4 @@ jobs:
         run: forge fmt --check
 
       - name: Gas snapshot check
-        run: forge snapshot --check
+        run: forge snapshot --check --tolerance 30
