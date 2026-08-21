@@ -54,6 +54,9 @@ export default function App() {
   // UX: Simulated Action States
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // DEMO MODE STATE
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
   // Spotlight effect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -95,14 +98,6 @@ export default function App() {
 
   const handleConnect = () => {
     connect({ connector: injected() });
-  };
-
-  const handleDisconnect = () => {
-    disconnect();
-    toast('Wallet disconnected', {
-      description: 'Your session has been securely closed.',
-    });
-    setActiveTab('overview');
   };
 
   const handleCopy = (text: string, id: string) => {
@@ -209,10 +204,10 @@ console.log('Verifiable Stream Active:', stream.id);`;
             </div>
             
             <button 
-              onClick={!isConnected ? handleConnect : handleDisconnect}
+              onClick={!(isConnected || isDemoMode) ? handleConnect : () => { disconnect(); setIsDemoMode(false); setActiveTab('overview'); toast('Session closed.'); }}
               disabled={isConnecting}
               className={`relative overflow-hidden rounded-full px-5 py-1.5 text-[13px] font-medium transition-all duration-300 ${
-                isConnected 
+                (isConnected || isDemoMode)
                   ? 'border border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-red-500/30 group' 
                   : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.15)]'
               }`}
@@ -223,10 +218,12 @@ console.log('Verifiable Stream Active:', stream.id);`;
                     <div className="h-3 w-3 animate-spin rounded-full border-2 border-black/20 border-t-black" />
                     <span>Authenticating...</span>
                   </>
-                ) : isConnected ? (
+                ) : (isConnected || isDemoMode) ? (
                   <>
-                    <div className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] group-hover:bg-red-500 group-hover:shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                    <span className="font-mono group-hover:hidden">{ensName || (address ? shortenAddress(address) : '')}</span>
+                    <div className={`h-1.5 w-1.5 rounded-full ${isDemoMode ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'} group-hover:bg-red-500 group-hover:shadow-[0_0_8px_rgba(239,68,68,0.6)]`} />
+                    <span className="font-mono group-hover:hidden">
+                      {isDemoMode ? 'demo.eth' : (ensName || (address ? shortenAddress(address) : ''))}
+                    </span>
                     <span className="font-mono hidden group-hover:inline-block text-red-400">Disconnect</span>
                   </>
                 ) : (
@@ -529,7 +526,7 @@ console.log('Verifiable Stream Active:', stream.id);`;
               <div className="border border-white/10 rounded-[2.5rem] bg-[#050505] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden min-h-[700px]">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                {!isConnected ? (
+                {!isConnected && !isDemoMode ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.02),transparent_50%)]">
                     <motion.div 
                       initial={{ scale: 0.9, opacity: 0 }}
@@ -558,16 +555,26 @@ console.log('Verifiable Stream Active:', stream.id);`;
                     >
                       Connect your Ethereum wallet to query your active streams, monitor bandwidth, and manage session keys.
                     </motion.p>
-                    <motion.button 
+                    <motion.div 
                       initial={{ y: 10, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.4 }}
-                      onClick={handleConnect}
-                      disabled={isConnecting}
-                      className="px-10 py-4 bg-white text-black hover:bg-[#e0e0e0] rounded-2xl text-sm font-semibold transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:scale-[1.02] active:scale-95"
+                      className="flex flex-col gap-4"
                     >
-                      {isConnecting ? 'Authenticating via Wallet...' : 'Connect Web3 Wallet'}
-                    </motion.button>
+                      <button 
+                        onClick={handleConnect}
+                        disabled={isConnecting}
+                        className="px-10 py-4 bg-white text-black hover:bg-[#e0e0e0] rounded-2xl text-sm font-semibold transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:scale-[1.02] active:scale-95"
+                      >
+                        {isConnecting ? 'Authenticating via Wallet...' : 'Connect Web3 Wallet'}
+                      </button>
+                      <button 
+                        onClick={() => { setIsDemoMode(true); toast.success('Demo Mode Active', { description: 'Viewing dashboard as demo.eth' }); }}
+                        className="text-[#888] hover:text-white text-sm font-medium transition-colors hover:underline underline-offset-4"
+                      >
+                        or View Live Demo without Wallet
+                      </button>
+                    </motion.div>
                   </div>
                 ) : (
                   <div className="p-12">
@@ -585,12 +592,12 @@ console.log('Verifiable Stream Active:', stream.id);`;
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.2 }}
                           className="flex items-center gap-2 cursor-pointer group"
-                          onClick={() => handleCopy(address || '', 'address')}
+                          onClick={() => handleCopy(isDemoMode ? 'demo.eth' : (address || ''), 'address')}
                           title="Click to copy address"
                         >
-                          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse" />
+                          <div className={`w-2 h-2 rounded-full ${isDemoMode ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]'} animate-pulse`} />
                           <p className="text-[#888] text-sm font-mono tracking-tight group-hover:text-[#aaa] transition-colors flex items-center gap-2">
-                            Managing access for <span className="text-white font-medium">{ensName || (address ? shortenAddress(address) : '')}</span>
+                            Managing access for <span className="text-white font-medium">{isDemoMode ? 'demo.eth' : (ensName || (address ? shortenAddress(address) : ''))}</span>
                             {copiedId === 'address' ? <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
                           </p>
                         </motion.div>
