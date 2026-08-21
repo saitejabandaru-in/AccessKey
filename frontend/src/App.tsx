@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Activity, Shield, Terminal, ArrowRight, CheckCircle2, Lock, Command, Zap, Layers, BarChart3, Database } from 'lucide-react';
+import { Activity, Shield, Terminal, Lock, Command, Database, Code2, Cpu, Globe, ArrowUpRight } from 'lucide-react';
 
 export default function App() {
   const [isConnected, setIsConnected] = useState(false);
@@ -27,15 +27,33 @@ export default function App() {
     setTimeout(() => {
       setIsConnecting(false);
       setIsConnected(true);
+      setActiveTab('dashboard'); // Auto switch to dashboard on connect
     }, 1200);
   };
+
+  const codeSnippet = `// Integrate AccessKey natively into your protocol
+import { AccessKeySDK } from '@accesskey/sdk';
+
+const sdk = new AccessKeySDK({
+  provider: window.ethereum,
+  network: 'mainnet'
+});
+
+// Authorize a session key for an AI Agent
+const session = await sdk.authorizeSession({
+  planId: 42,
+  allocatedCredits: 10_000,
+  duration: 30 * 24 * 60 * 60, // 30 days
+});
+
+console.log('Stream initialized:', session.streamId);`;
 
   return (
     <div 
       ref={containerRef}
       className="min-h-screen bg-[#000000] text-[#ededed] font-sans selection:bg-white/20 relative overflow-hidden"
     >
-      {/* Dynamic Ambient Glow */}
+      {/* Ambient Glow */}
       <div 
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
         style={{
@@ -43,33 +61,32 @@ export default function App() {
         }}
       />
       
-      <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-white/[0.04] bg-black/50 backdrop-blur-2xl">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-white">
               <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-400" />
               <Lock className="relative w-3.5 h-3.5 text-black" strokeWidth={2.5} />
             </div>
             <span className="text-sm font-semibold tracking-tight text-white">AccessKey</span>
-            <span className="ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-[#888] backdrop-blur-md">
-              v3.0.0
+            <span className="hidden sm:inline-block ml-2 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-[#888]">
+              Mainnet Live
             </span>
           </div>
           
           <div className="flex items-center gap-8">
             <div className="hidden md:flex items-center gap-6 text-[13px] font-medium text-[#888]">
               <a href="#" className="hover:text-white transition-colors">Documentation</a>
-              <a href="#" className="hover:text-white transition-colors">Protocol</a>
-              <a href="#" className="hover:text-white transition-colors">Governance</a>
+              <a href="#" className="hover:text-white transition-colors">SDK Reference</a>
+              <a href="#" className="hover:text-white transition-colors">Smart Contracts</a>
+              <a href="#" className="hover:text-white transition-colors">Network Status</a>
             </div>
             
             <button 
               onClick={!isConnected ? handleConnect : () => setIsConnected(false)}
               disabled={isConnecting}
-              className={`relative overflow-hidden rounded-full px-4 py-1.5 text-[13px] font-medium transition-all duration-300 ${
+              className={`relative overflow-hidden rounded-full px-5 py-1.5 text-[13px] font-medium transition-all duration-300 ${
                 isConnected 
                   ? 'border border-white/10 bg-white/5 text-white hover:bg-white/10' 
                   : 'bg-white text-black hover:scale-[1.02] active:scale-95'
@@ -87,7 +104,7 @@ export default function App() {
                     <span className="font-mono">saiteja.eth</span>
                   </>
                 ) : (
-                  <span>Connect Wallet</span>
+                  <span>Launch App</span>
                 )}
               </div>
             </button>
@@ -95,177 +112,157 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-32">
-        {/* Header Section */}
-        <div className="max-w-3xl mb-24">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-medium text-[#aaa] mb-8 backdrop-blur-sm">
-            <Zap className="w-3.5 h-3.5 text-white" />
-            <span>Introducing Session Keys for seamless automation</span>
-            <ArrowRight className="w-3 h-3 ml-1" />
-          </div>
-          
-          <h1 className="text-[4rem] md:text-[5.5rem] font-semibold tracking-tighter leading-[0.95] mb-8 bg-gradient-to-br from-white to-white/40 bg-clip-text text-transparent">
-            Verifiable API <br /> Access Layer.
-          </h1>
-          <p className="text-[1.1rem] text-[#888] leading-relaxed max-w-xl font-medium tracking-tight">
-            The cryptographic authorization standard for data providers. Trustless metering, native stablecoin settlements, and session-key abstraction.
-          </p>
-          
-          {/* Custom Animated Tabs */}
-          <div className="mt-12 flex gap-1 p-1 w-fit rounded-lg border border-white/10 bg-[#111]/50 backdrop-blur-xl">
+      <main className="relative z-10">
+        
+        {/* Navigation Tabs */}
+        <div className="max-w-7xl mx-auto px-6 mt-12 mb-8 flex justify-center">
+          <div className="flex gap-1 p-1 rounded-lg border border-white/10 bg-[#111]/50 backdrop-blur-xl">
             <button 
               onClick={() => setActiveTab('overview')}
-              className={`relative px-6 py-2 rounded-md text-[13px] font-medium transition-colors duration-300 ${
+              className={`relative px-8 py-2 rounded-md text-[13px] font-medium transition-colors duration-300 ${
                 activeTab === 'overview' ? 'text-black' : 'text-[#888] hover:text-white'
               }`}
             >
               {activeTab === 'overview' && (
                 <div className="absolute inset-0 bg-white rounded-md shadow-sm pointer-events-none" />
               )}
-              <span className="relative z-10">Explore Plans</span>
+              <span className="relative z-10">Protocol Overview</span>
             </button>
             <button 
               onClick={() => setActiveTab('dashboard')}
-              className={`relative px-6 py-2 rounded-md text-[13px] font-medium transition-colors duration-300 ${
+              className={`relative px-8 py-2 rounded-md text-[13px] font-medium transition-colors duration-300 ${
                 activeTab === 'dashboard' ? 'text-black' : 'text-[#888] hover:text-white'
               }`}
             >
               {activeTab === 'dashboard' && (
                 <div className="absolute inset-0 bg-white rounded-md shadow-sm pointer-events-none" />
               )}
-              <span className="relative z-10">Manage Subscriptions</span>
+              <span className="relative z-10">Subscriber Dashboard</span>
             </button>
           </div>
         </div>
 
-        {/* Content */}
         {activeTab === 'overview' ? (
-          <div className="space-y-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Bento Grid layout for plans */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* Plan 1 */}
-              <div className="group relative rounded-[2rem] border border-white/5 bg-[#0a0a0a] p-10 hover:border-white/15 transition-all duration-500 overflow-hidden min-h-[440px] flex flex-col justify-between shadow-2xl">
-                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="relative z-10">
-                  <div className="flex justify-between items-center mb-8">
-                    <span className="text-[11px] font-mono text-[#888] uppercase tracking-widest border border-white/10 rounded-full px-3 py-1">Standard</span>
-                    <div className="w-10 h-10 rounded-full border border-white/10 bg-[#111] flex items-center justify-center">
-                      <Database className="w-4 h-4 text-[#888]" />
-                    </div>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Hero Section */}
+            <section className="max-w-7xl mx-auto px-6 pt-16 pb-24 border-b border-white/[0.04]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-medium text-[#aaa] mb-8">
+                    <Shield className="w-3.5 h-3.5 text-white" />
+                    <span>Audited by Trail of Bits & Quantstamp</span>
                   </div>
-                  <h3 className="text-3xl font-medium tracking-tight mb-3">Oracle Feed</h3>
-                  <p className="text-[#888] text-[15px] leading-relaxed max-w-[280px]">
-                    High-fidelity historical data endpoints. Ideal for indexing and standard analytics workflows.
+                  <h1 className="text-[3.5rem] md:text-[5rem] font-semibold tracking-tighter leading-[1.05] mb-6">
+                    Monetize data. <br/> <span className="text-[#888]">Trustlessly.</span>
+                  </h1>
+                  <p className="text-[1.1rem] text-[#888] leading-relaxed max-w-lg font-medium tracking-tight mb-8">
+                    AccessKey is the foundational smart contract primitive for API authorization. Accept USDC/WETH subscriptions, enforce metering on-chain, and abstract wallets using session keys.
                   </p>
-                </div>
-                
-                <div className="relative z-10 mt-12 border-t border-white/10 pt-8">
-                  <div className="flex items-end gap-2 mb-6">
-                    <span className="text-5xl font-medium tracking-tighter">49</span>
-                    <span className="text-[#888] pb-1 font-medium text-sm tracking-tight">USDC / mo</span>
+                  <div className="flex gap-4">
+                    <button className="px-6 py-3 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all">
+                      Read Documentation
+                    </button>
+                    <button className="px-6 py-3 border border-white/10 hover:bg-white/5 text-white rounded-xl text-sm font-medium transition-all flex items-center gap-2">
+                      <Code2 className="w-4 h-4" /> View GitHub
+                    </button>
                   </div>
-                  
-                  <div className="space-y-3 mb-10">
-                    <div className="flex items-center gap-3 text-sm text-[#aaa]">
-                      <CheckCircle2 className="w-4 h-4 text-white/40" />
-                      <span>10,000 requests per month</span>
+                </div>
+
+                {/* Code Terminal Visual */}
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-white/10 to-white/0 rounded-2xl blur-xl" />
+                  <div className="relative rounded-2xl border border-white/10 bg-[#050505] overflow-hidden shadow-2xl">
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#0a0a0a]">
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                      <span className="ml-2 text-xs font-mono text-[#666]">integration.ts</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-[#aaa]">
-                      <CheckCircle2 className="w-4 h-4 text-white/40" />
-                      <span>L2 Settlement optimization</span>
+                    <div className="p-6 overflow-x-auto text-sm font-mono leading-relaxed">
+                      <pre>
+                        <code className="text-[#ccc]">
+                          {codeSnippet.split('\n').map((line, i) => (
+                            <div key={i} className="table-row">
+                              <span className="table-cell pr-4 text-[#444] select-none text-right">{i + 1}</span>
+                              <span className="table-cell whitespace-pre">
+                                {line.replace(/import|const|new|await|console/g, match => 
+                                  `<span class="text-white font-medium">${match}</span>`
+                                ).replace(/'.*?'/g, match => 
+                                  `<span class="text-[#888]">${match}</span>`
+                                ).replace(/\/\/.*$/g, match => 
+                                  `<span class="text-[#555]">${match}</span>`
+                                )}
+                              </span>
+                            </div>
+                          ))}
+                        </code>
+                      </pre>
                     </div>
                   </div>
-                  
-                  <button className="w-full py-3.5 bg-[#111] hover:bg-[#1a1a1a] border border-white/10 text-white rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 group-hover:border-white/30">
-                    Initialize Stream <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
-                  </button>
                 </div>
+              </div>
+            </section>
+
+            {/* Live Network Stats */}
+            <section className="max-w-7xl mx-auto px-6 py-20 border-b border-white/[0.04]">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div>
+                  <p className="text-[#666] text-sm font-medium mb-1">Total Value Locked</p>
+                  <p className="text-3xl font-medium tracking-tight">$42.5M</p>
+                </div>
+                <div>
+                  <p className="text-[#666] text-sm font-medium mb-1">Active Streams</p>
+                  <p className="text-3xl font-medium tracking-tight">14,205</p>
+                </div>
+                <div>
+                  <p className="text-[#666] text-sm font-medium mb-1">API Requests Secured</p>
+                  <p className="text-3xl font-medium tracking-tight">1.8B+</p>
+                </div>
+                <div>
+                  <p className="text-[#666] text-sm font-medium mb-1">Keeper Payouts</p>
+                  <p className="text-3xl font-medium tracking-tight">342 ETH</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Target Use Cases */}
+            <section className="max-w-7xl mx-auto px-6 py-24 border-b border-white/[0.04]">
+              <div className="text-center max-w-2xl mx-auto mb-16">
+                <h2 className="text-3xl font-medium tracking-tight mb-4">Built for the Autonomous Web</h2>
+                <p className="text-[#888] text-[15px] leading-relaxed">
+                  AccessKey provides the economic scaffolding required for machines to trustlessly pay machines for data and computation.
+                </p>
               </div>
 
-              {/* Plan 2 */}
-              <div className="group relative rounded-[2rem] border border-white/10 bg-[#0a0a0a] p-10 hover:border-white/20 transition-all duration-500 overflow-hidden min-h-[440px] flex flex-col justify-between shadow-2xl">
-                {/* Subtle gradient orb for enterprise */}
-                <div className="absolute -top-32 -right-32 w-64 h-64 bg-white/[0.05] rounded-full blur-[80px]" />
-                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="relative z-10">
-                  <div className="flex justify-between items-center mb-8">
-                    <span className="text-[11px] font-mono text-white bg-white/10 uppercase tracking-widest border border-white/20 rounded-full px-3 py-1">Enterprise</span>
-                    <div className="w-10 h-10 rounded-full border border-white/20 bg-white flex items-center justify-center">
-                      <BarChart3 className="w-4 h-4 text-black" />
-                    </div>
-                  </div>
-                  <h3 className="text-3xl font-medium tracking-tight mb-3 text-white">High-Frequency Node</h3>
-                  <p className="text-[#aaa] text-[15px] leading-relaxed max-w-[280px]">
-                    Unrestricted mempool access and advanced state reads. Engineered for institutional quant desks.
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-8 rounded-2xl border border-white/5 bg-[#0a0a0a] hover:bg-[#111] transition-colors">
+                  <Cpu className="w-8 h-8 text-white mb-6" />
+                  <h3 className="text-xl font-medium mb-3">AI Agent Economy</h3>
+                  <p className="text-[#888] text-sm leading-relaxed">
+                    Allow autonomous AI agents to subscribe to premium data feeds or LLM inferences using their own wallets and session keys, fully on-chain.
                   </p>
                 </div>
-                
-                <div className="relative z-10 mt-12 border-t border-white/10 pt-8">
-                  <div className="flex items-end gap-2 mb-6">
-                    <span className="text-5xl font-medium tracking-tighter text-white">199</span>
-                    <span className="text-[#888] pb-1 font-medium text-sm tracking-tight">WETH / mo</span>
-                  </div>
-                  
-                  <div className="space-y-3 mb-10">
-                    <div className="flex items-center gap-3 text-sm text-[#ccc]">
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                      <span>1,000,000 requests per month</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-[#ccc]">
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                      <span>Keeper-automated renewals</span>
-                    </div>
-                  </div>
-                  
-                  <button className="w-full py-3.5 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_40px_rgba(255,255,255,0.2)]">
-                    Initialize Stream <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-all" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Technical Detail Section */}
-            <div>
-              <h2 className="text-2xl font-medium tracking-tight mb-12">Protocol Architecture</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-16">
-                <div className="group">
-                  <div className="w-12 h-12 rounded-[14px] bg-[#111] border border-white/10 flex items-center justify-center mb-6 group-hover:border-white/30 transition-colors">
-                    <Shield className="w-5 h-5 text-[#ccc]" />
-                  </div>
-                  <h4 className="text-lg font-medium mb-3">Trustless Escrow</h4>
-                  <p className="text-[14px] text-[#888] leading-relaxed">
-                    Capital is locked in verifiable streaming contracts. Providers are only compensated for cryptographically proven consumption.
+                <div className="p-8 rounded-2xl border border-white/5 bg-[#0a0a0a] hover:bg-[#111] transition-colors">
+                  <Database className="w-8 h-8 text-white mb-6" />
+                  <h3 className="text-xl font-medium mb-3">Decentralized Oracles</h3>
+                  <p className="text-[#888] text-sm leading-relaxed">
+                    Oracle networks can monetize high-frequency data streams directly. Escrow guarantees payment, while cryptographic signatures prevent data theft.
                   </p>
                 </div>
-                <div className="group">
-                  <div className="w-12 h-12 rounded-[14px] bg-[#111] border border-white/10 flex items-center justify-center mb-6 group-hover:border-white/30 transition-colors">
-                    <Terminal className="w-5 h-5 text-[#ccc]" />
-                  </div>
-                  <h4 className="text-lg font-medium mb-3">Session Key Delegation</h4>
-                  <p className="text-[14px] text-[#888] leading-relaxed">
-                    Authorize ephemeral ECDSA keypairs to sign payload consumption off-chain, eliminating the need to expose primary custody wallets.
-                  </p>
-                </div>
-                <div className="group">
-                  <div className="w-12 h-12 rounded-[14px] bg-[#111] border border-white/10 flex items-center justify-center mb-6 group-hover:border-white/30 transition-colors">
-                    <Layers className="w-5 h-5 text-[#ccc]" />
-                  </div>
-                  <h4 className="text-lg font-medium mb-3">Keeper Network</h4>
-                  <p className="text-[14px] text-[#888] leading-relaxed">
-                    Built-in native bounty mechanisms mathematically incentivize decentralized infrastructure to automatically execute state renewals.
+                <div className="p-8 rounded-2xl border border-white/5 bg-[#0a0a0a] hover:bg-[#111] transition-colors">
+                  <Globe className="w-8 h-8 text-white mb-6" />
+                  <h3 className="text-xl font-medium mb-3">RPC & Node Providers</h3>
+                  <p className="text-[#888] text-sm leading-relaxed">
+                    Replace Web2 credit card subscriptions with trustless Web3 billing. Automate usage settlement for heavy infrastructure consumers via keepers.
                   </p>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="border border-white/10 rounded-[2rem] bg-[#0a0a0a] shadow-2xl relative overflow-hidden min-h-[500px]">
-              
-              {/* Top subtle gradient */}
+          /* Dashboard Tab */
+          <div className="max-w-7xl mx-auto px-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="border border-white/10 rounded-[2rem] bg-[#0a0a0a] shadow-2xl relative overflow-hidden min-h-[600px]">
               <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
               {!isConnected ? (
@@ -276,37 +273,37 @@ export default function App() {
                       <Lock className="w-6 h-6 text-[#888]" />
                     </div>
                   </div>
-                  <h3 className="text-xl font-medium tracking-tight mb-3">Authentication Required</h3>
+                  <h3 className="text-xl font-medium tracking-tight mb-3">Access Denied</h3>
                   <p className="text-[#888] text-[15px] max-w-sm mx-auto leading-relaxed mb-8">
-                    Connect your Ethereum wallet via Web3 provider to query and manage your active cryptographic access streams.
+                    Connect your Ethereum wallet to query your active streams, monitor bandwidth, and manage session keys.
                   </p>
                   <button 
                     onClick={handleConnect}
                     disabled={isConnecting}
-                    className="px-8 py-3 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                    className="px-8 py-3 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all"
                   >
                     {isConnecting ? 'Authenticating...' : 'Connect Wallet'}
                   </button>
                 </div>
               ) : (
                 <div className="p-10">
-                  <div className="flex justify-between items-end mb-10">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
                     <div>
-                      <h3 className="text-2xl font-medium tracking-tight mb-2">Active Streams</h3>
+                      <h3 className="text-3xl font-medium tracking-tight mb-2">Subscriber Dashboard</h3>
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                        <p className="text-[#888] text-sm font-mono">Managing access for saiteja.eth</p>
+                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                        <p className="text-[#888] text-sm font-mono">Managing access for 0x8aF...3e9C</p>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded-md bg-[#111] text-xs text-[#888] font-mono">
+                      <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded-md bg-[#111] text-xs text-[#888] font-mono">
                         <Command className="w-3 h-3" />
                         <span>K</span>
                         <span className="ml-1">to search</span>
                       </div>
-                      <button className="text-[13px] font-medium text-white px-4 py-2 bg-white/5 hover:bg-white/10 rounded-md border border-white/5 transition-colors">
-                        View Logs
+                      <button className="text-[13px] font-medium text-black px-5 py-2.5 bg-white hover:bg-[#e0e0e0] rounded-md transition-colors flex items-center gap-2">
+                        Explore Marketplace <ArrowUpRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -314,27 +311,27 @@ export default function App() {
                   {/* High Fidelity Data Table */}
                   <div className="border border-white/10 rounded-2xl bg-[#050505] overflow-hidden shadow-inner">
                     <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/5 bg-[#0a0a0a] text-[11px] text-[#666] font-mono uppercase tracking-widest">
-                      <div className="col-span-5">Service Provider</div>
-                      <div className="col-span-4">Bandwidth Consumption</div>
-                      <div className="col-span-3 text-right">Actions</div>
+                      <div className="col-span-12 md:col-span-5">Provider Service</div>
+                      <div className="col-span-12 md:col-span-4 hidden md:block">Bandwidth Consumption</div>
+                      <div className="col-span-12 md:col-span-3 text-right hidden md:block">Actions</div>
                     </div>
                     
                     {/* Row 1 */}
-                    <div className="grid grid-cols-12 gap-4 px-6 py-5 items-center hover:bg-white/[0.02] transition-colors group">
-                      <div className="col-span-5 flex items-center gap-4">
-                        <div className="w-10 h-10 border border-white/10 rounded-xl flex items-center justify-center bg-[#111] shadow-sm">
-                          <Activity className="w-4 h-4 text-white" />
+                    <div className="grid grid-cols-12 gap-4 px-6 py-6 items-center hover:bg-white/[0.02] transition-colors border-b border-white/5 group">
+                      <div className="col-span-12 md:col-span-5 flex items-center gap-4">
+                        <div className="w-12 h-12 border border-white/10 rounded-xl flex items-center justify-center bg-[#111] shadow-sm">
+                          <Activity className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <div className="font-medium text-[14px]">Standard Oracle Feed</div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[11px] text-[#666] font-mono bg-white/5 px-1.5 py-0.5 rounded">ID: 0x4B2...F9A</span>
-                            <span className="text-[11px] text-green-400">Streaming</span>
+                          <div className="font-medium text-[15px] mb-1">Standard Oracle Feed</div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-[#888] font-mono bg-white/5 border border-white/5 px-2 py-0.5 rounded">ID: 0x4B...F9A</span>
+                            <span className="text-[11px] text-green-400 font-medium">Streaming Active</span>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="col-span-4 pr-8">
+                      <div className="col-span-12 md:col-span-4 pr-8">
                         <div className="flex justify-between text-[11px] text-[#888] mb-2 font-mono uppercase tracking-wider">
                           <span className="text-white">4,500 REQ</span>
                           <span>10,000 MAX</span>
@@ -344,7 +341,7 @@ export default function App() {
                         </div>
                       </div>
                       
-                      <div className="col-span-3 flex justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="col-span-12 md:col-span-3 flex justify-start md:justify-end gap-2">
                         <button className="px-3 py-1.5 border border-white/10 hover:border-white/30 bg-[#111] rounded-md text-[12px] font-medium transition-all text-[#aaa] hover:text-white">
                           Rotate Key
                         </button>
@@ -353,6 +350,42 @@ export default function App() {
                         </button>
                       </div>
                     </div>
+
+                    {/* Row 2 */}
+                    <div className="grid grid-cols-12 gap-4 px-6 py-6 items-center hover:bg-white/[0.02] transition-colors group">
+                      <div className="col-span-12 md:col-span-5 flex items-center gap-4">
+                        <div className="w-12 h-12 border border-white/10 rounded-xl flex items-center justify-center bg-[#111] shadow-sm">
+                          <Terminal className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-[15px] mb-1">EigenLayer AVS RPC</div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-[#888] font-mono bg-white/5 border border-white/5 px-2 py-0.5 rounded">ID: 0x99...2A1</span>
+                            <span className="text-[11px] text-yellow-400 font-medium">Nearing Limit</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-12 md:col-span-4 pr-8">
+                        <div className="flex justify-between text-[11px] text-[#888] mb-2 font-mono uppercase tracking-wider">
+                          <span className="text-white">920,000 REQ</span>
+                          <span>1,000,000 MAX</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-yellow-400 w-[92%] rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-12 md:col-span-3 flex justify-start md:justify-end gap-2">
+                        <button className="px-3 py-1.5 border border-white/10 hover:border-white/30 bg-[#111] rounded-md text-[12px] font-medium transition-all text-[#aaa] hover:text-white">
+                          Renew Stream
+                        </button>
+                        <button className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-md text-[12px] font-medium transition-all">
+                          Terminate
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               )}
@@ -361,18 +394,54 @@ export default function App() {
         )}
       </main>
 
-      <footer className="border-t border-white/[0.04] bg-[#000000] relative z-10">
-        <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-[13px] text-[#666]">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-white/10 rounded-sm flex items-center justify-center">
-              <Lock className="w-3 h-3 text-[#aaa]" />
+      <footer className="border-t border-white/[0.04] bg-[#000000] relative z-10 mt-12">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 border-b border-white/5 pb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-5 h-5 bg-white/10 rounded-sm flex items-center justify-center">
+                  <Lock className="w-3 h-3 text-[#aaa]" />
+                </div>
+                <span className="font-medium text-sm">AccessKey</span>
+              </div>
+              <p className="text-[#666] text-sm leading-relaxed">
+                The verifiable authorization layer. Abstracting payments, metering, and keys for the decentralized web.
+              </p>
             </div>
-            <span>© 2026 AccessKey Protocol. Released under MIT.</span>
+            <div>
+              <h4 className="font-medium text-sm mb-4">Developers</h4>
+              <ul className="space-y-3 text-sm text-[#888]">
+                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">TypeScript SDK</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Smart Contracts</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Bug Bounty</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm mb-4">Ecosystem</h4>
+              <ul className="space-y-3 text-sm text-[#888]">
+                <li><a href="#" className="hover:text-white transition-colors">Providers Directory</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Keeper Network</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Governance</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Network Stats</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm mb-4">Company</h4>
+              <ul className="space-y-3 text-sm text-[#888]">
+                <li><a href="#" className="hover:text-white transition-colors">Twitter (X)</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Discord Community</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Security Audits</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+              </ul>
+            </div>
           </div>
-          <div className="flex gap-8 font-medium">
-            <a href="#" className="hover:text-white transition-colors">GitHub Repository</a>
-            <a href="#" className="hover:text-white transition-colors">Smart Contract Audit</a>
-            <a href="#" className="hover:text-white transition-colors">Etherscan Explorer</a>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-[13px] text-[#666]">
+            <span>© 2026 AccessKey Protocol. MIT License.</span>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span>All systems operational</span>
+            </div>
           </div>
         </div>
       </footer>
