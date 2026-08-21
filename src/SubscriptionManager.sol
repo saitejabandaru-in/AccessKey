@@ -34,7 +34,7 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         uint256 price = planManager.getDynamicPrice(planId);
 
         paymentManager.processPayment{value: msg.value}(
-            msg.sender, plan.provider, plan.paymentToken, price, plan.duration, _nextSubscriptionId
+            msg.sender, plan.provider, plan.paymentToken, price, plan.duration, _nextSubscriptionId, address(0), 0
         );
 
         subscriptionId = _nextSubscriptionId++;
@@ -85,7 +85,7 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         uint256 newSubscriptionId = _nextSubscriptionId++;
 
         paymentManager.processPayment{value: msg.value}(
-            sub.subscriber, plan.provider, plan.paymentToken, price, plan.duration, newSubscriptionId
+            sub.subscriber, plan.provider, plan.paymentToken, price, plan.duration, newSubscriptionId, address(0), 0
         );
 
         _subscriptions[newSubscriptionId] = Subscription({
@@ -116,8 +116,10 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
 
         uint256 newSubscriptionId = _nextSubscriptionId++;
 
+        uint256 keeperReward = (price * 100) / 10000;
+
         paymentManager.processPayment{value: msg.value}(
-            sub.subscriber, plan.provider, plan.paymentToken, price, plan.duration, newSubscriptionId
+            sub.subscriber, plan.provider, plan.paymentToken, price, plan.duration, newSubscriptionId, msg.sender, keeperReward
         );
 
         _subscriptions[newSubscriptionId] = Subscription({
@@ -163,7 +165,7 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
 
         // 2. Create the new subscription
         paymentManager.processPayment{value: msg.value}(
-            msg.sender, newPlan.provider, newPlan.paymentToken, newPrice, newPlan.duration, _nextSubscriptionId
+            msg.sender, newPlan.provider, newPlan.paymentToken, newPrice, newPlan.duration, _nextSubscriptionId, address(0), 0
         );
 
         newSubscriptionId = _nextSubscriptionId++;

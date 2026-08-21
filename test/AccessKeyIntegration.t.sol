@@ -30,6 +30,7 @@ contract AccessKeyIntegrationTest is Test {
         ethOracle = new MockV3Aggregator(8, 2000 * 1e8); // $2000 per ETH
 
         planManager = new PlanManager();
+        planManager.setTokenWhitelist(address(usdc), true);
         paymentManager = new PaymentManager(500); // 5% fee
         subscriptionManager = new SubscriptionManager(address(planManager), address(paymentManager));
         usageSettlement = new UsageSettlement(address(subscriptionManager), address(planManager));
@@ -53,7 +54,7 @@ contract AccessKeyIntegrationTest is Test {
         vm.startPrank(providerAddr);
         // Let's just use raw token price for simplicity since Oracle math gets complex with USDC decimals vs ETH
         // We set priceFeed to address(0) for raw tokens. 10 USDC = 10 * 1e6
-        uint256 planId = planManager.createPlan(10 * 1e6, address(usdc), address(0), 30 days, 1000, "ipfs://plan");
+        uint256 planId = planManager.createPlan(10 * 1e6, address(usdc), address(0), 86400, 30 days, 1000, "ipfs://plan");
         vm.stopPrank();
 
         // 2. User subscribes

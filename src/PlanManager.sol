@@ -9,7 +9,13 @@ interface AggregatorV3Interface {
     function latestRoundData()
         external
         view
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
 }
 
 /// @title PlanManager
@@ -19,29 +25,39 @@ contract PlanManager is IPlanManager, AccessControl {
 
     uint256 private _nextPlanId = 1;
     mapping(uint256 => Plan) private _plans;
+    mapping(address => bool) public isTokenWhitelisted;
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        isTokenWhitelisted[address(0)] = true; // Native ETH is always allowed
+    }
+
+    function setTokenWhitelist(address token, bool isWhitelisted) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        isTokenWhitelisted[token] = isWhitelisted;
+        emit TokenWhitelisted(token, isWhitelisted);
     }
 
     function createPlan(
         uint256 price,
         address paymentToken,
         address priceFeed,
+        uint256 oracleHeartbeat,
         uint256 duration,
         uint256 allocatedCredits,
         string calldata metadataURI
     ) external override returns (uint256 planId) {
         if (duration == 0) revert InvalidPlanConfiguration();
+        if (!isTokenWhitelisted[paymentToken]) revert TokenNotWhitelisted();
 
         planId = _nextPlanId++;
-
+        
         _plans[planId] = Plan({
             planId: planId,
             provider: msg.sender,
             price: price,
             paymentToken: paymentToken,
             priceFeed: priceFeed,
+            oracleHeartbeat: oracleHeartbeat,
             duration: duration,
             allocatedCredits: allocatedCredits,
             isActive: true,
@@ -56,6 +72,7 @@ contract PlanManager is IPlanManager, AccessControl {
         uint256 price,
         address paymentToken,
         address priceFeed,
+        uint256 oracleHeartbeat,
         uint256 duration,
         uint256 allocatedCredits,
         string calldata metadataURI
@@ -64,10 +81,12 @@ contract PlanManager is IPlanManager, AccessControl {
         if (plan.planId == 0) revert PlanDoesNotExist();
         if (plan.provider != msg.sender) revert UnauthorizedProvider();
         if (duration == 0) revert InvalidPlanConfiguration();
+        if (!isTokenWhitelisted[paymentToken]) revert TokenNotWhitelisted();
 
         plan.price = price;
         plan.paymentToken = paymentToken;
         plan.priceFeed = priceFeed;
+        plan.oracleHeartbeat = oracleHeartbeat;
         plan.duration = duration;
         plan.allocatedCredits = allocatedCredits;
         plan.metadataURI = metadataURI;
@@ -106,21 +125,21 @@ contract PlanManager is IPlanManager, AccessControl {
     function getDynamicPrice(uint256 planId) external view override returns (uint256) {
         Plan memory plan = _plans[planId];
         if (plan.planId == 0) revert PlanDoesNotExist();
-
+        
         if (plan.priceFeed == address(0)) {
             return plan.price; // Native token price
         }
-
+        
         AggregatorV3Interface oracle = AggregatorV3Interface(plan.priceFeed);
-        (, int256 price,,,) = oracle.latestRoundData();
+        (, int256 price, , uint256 updatedAt, ) = oracle.latestRoundData();
         if (price <= 0) revert OracleError();
+        
+        // Oracle Stale Check
+        if (plan.oracleHeartbeat > 0 && block.timestamp - updatedAt > plan.oracleHeartbeat) {
+            revert StalePrice();
+        }
 
         uint8 oracleDecimals = oracle.decimals();
-
-        // Dynamically compute the required payment amount based on the fiat price of the plan
-        // plan.price is represented with 18 decimals (e.g. $10 = 10 * 10^18)
-        // oracle price has oracleDecimals (e.g. $2000 = 2000 * 10^8)
-        // requiredTokens = (plan.price * 10^oracleDecimals) / price
         return (plan.price * (10 ** oracleDecimals)) / uint256(price);
     }
 }

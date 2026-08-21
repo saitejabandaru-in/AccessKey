@@ -49,7 +49,9 @@ contract PaymentManager is IPaymentManager, AccessControl {
         address token,
         uint256 amount,
         uint256 duration,
-        uint256 subscriptionId
+        uint256 subscriptionId,
+        address keeper,
+        uint256 keeperReward
     ) external payable override onlyRole(SUBSCRIPTION_MANAGER_ROLE) returns (uint256 actualAmount) {
         if (duration == 0) revert InvalidStreamConfiguration();
 
@@ -63,10 +65,22 @@ contract PaymentManager is IPaymentManager, AccessControl {
             actualAmount = IERC20(token).balanceOf(address(this)) - balanceBefore;
         }
 
-        uint256 protocolFee = (actualAmount * _protocolFeeBps) / 10000;
-        uint256 providerShare = actualAmount - protocolFee;
+        if (keeperReward > actualAmount) revert InvalidPaymentAmount();
+
+        uint256 feeBase = actualAmount - keeperReward;
+        uint256 protocolFee = (feeBase * _protocolFeeBps) / 10000;
+        uint256 providerShare = feeBase - protocolFee;
 
         _protocolFees[token] += protocolFee;
+
+        if (keeperReward > 0 && keeper != address(0)) {
+            if (token == address(0)) {
+                (bool success, ) = keeper.call{value: keeperReward}("");
+                if (!success) revert TransferFailed();
+            } else {
+                IERC20(token).safeTransfer(keeper, keeperReward);
+            }
+        }
 
         _streams[subscriptionId] = Stream({
             provider: provider,

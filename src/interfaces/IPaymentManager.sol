@@ -45,7 +45,9 @@ interface IPaymentManager {
         address token,
         uint256 amount,
         uint256 duration,
-        uint256 subscriptionId
+        uint256 subscriptionId,
+        address keeper,
+        uint256 keeperReward
     ) external payable returns (uint256 actualAmount);
 
     /// @notice Provider withdraws unlocked funds from a specific stream
