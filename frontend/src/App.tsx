@@ -88,10 +88,10 @@ console.log('Stream initialized:', session.streamId);`;
           
           <div className="flex items-center gap-8">
             <div className="hidden md:flex items-center gap-6 text-[13px] font-medium text-[#888]">
-              <a href="#" className="hover:text-white transition-colors">Documentation</a>
-              <a href="#" className="hover:text-white transition-colors">SDK Reference</a>
-              <a href="#" className="hover:text-white transition-colors">Smart Contracts</a>
-              <a href="#" className="hover:text-white transition-colors">Network Status</a>
+              <a href="https://github.com/saitejabandaru-in/AccessKey#readme" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Documentation</a>
+              <a href="#integration" className="hover:text-white transition-colors" onClick={(e) => { e.preventDefault(); setActiveTab('overview'); setTimeout(() => document.getElementById('integration')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>SDK Reference</a>
+              <a href="https://github.com/saitejabandaru-in/AccessKey/tree/main/src" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Smart Contracts</a>
+              <a href="#stats" className="hover:text-white transition-colors" onClick={(e) => { e.preventDefault(); setActiveTab('overview'); setTimeout(() => document.getElementById('stats')?.scrollIntoView({ behavior: 'smooth' }), 100); }}>Network Status</a>
             </div>
             
             <button 
@@ -171,17 +171,17 @@ console.log('Stream initialized:', session.streamId);`;
                     AccessKey is the foundational smart contract primitive for API authorization. Accept USDC/WETH subscriptions, enforce metering on-chain, and abstract wallets using session keys.
                   </p>
                   <div className="flex gap-4">
-                    <button className="px-6 py-3 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all">
+                    <a href="https://github.com/saitejabandaru-in/AccessKey#readme" target="_blank" rel="noreferrer" className="px-6 py-3 bg-white text-black hover:bg-[#e0e0e0] rounded-xl text-sm font-semibold transition-all inline-block">
                       Read Documentation
-                    </button>
-                    <button className="px-6 py-3 border border-white/10 hover:bg-white/5 text-white rounded-xl text-sm font-medium transition-all flex items-center gap-2">
+                    </a>
+                    <a href="https://github.com/saitejabandaru-in/AccessKey" target="_blank" rel="noreferrer" className="px-6 py-3 border border-white/10 hover:bg-white/5 text-white rounded-xl text-sm font-medium transition-all flex items-center gap-2">
                       <Code2 className="w-4 h-4" /> View GitHub
-                    </button>
+                    </a>
                   </div>
                 </div>
 
                 {/* Code Terminal Visual */}
-                <div className="relative">
+                <div id="integration" className="relative scroll-mt-24">
                   <div className="absolute -inset-1 bg-gradient-to-r from-white/10 to-white/0 rounded-2xl blur-xl" />
                   <div className="relative rounded-2xl border border-white/10 bg-[#050505] overflow-hidden shadow-2xl">
                     <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#0a0a0a]">
@@ -216,7 +216,7 @@ console.log('Stream initialized:', session.streamId);`;
             </section>
 
             {/* Live Network Stats */}
-            <section className="max-w-7xl mx-auto px-6 py-20 border-b border-white/[0.04]">
+            <section id="stats" className="max-w-7xl mx-auto px-6 py-20 border-b border-white/[0.04] scroll-mt-24">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div>
                   <p className="text-[#666] text-sm font-medium mb-1">Total Value Locked</p>
@@ -314,9 +314,9 @@ console.log('Stream initialized:', session.streamId);`;
                         <span>K</span>
                         <span className="ml-1">to search</span>
                       </div>
-                      <button className="text-[13px] font-medium text-black px-5 py-2.5 bg-white hover:bg-[#e0e0e0] rounded-md transition-colors flex items-center gap-2">
+                      <a href="https://github.com/saitejabandaru-in/AccessKey/tree/main/src" target="_blank" rel="noreferrer" className="text-[13px] font-medium text-black px-5 py-2.5 bg-white hover:bg-[#e0e0e0] rounded-md transition-colors flex items-center gap-2">
                         Explore Marketplace <ArrowUpRight className="w-4 h-4" />
-                      </button>
+                      </a>
                     </div>
                   </div>
                   
@@ -423,28 +423,28 @@ console.log('Stream initialized:', session.streamId);`;
             <div>
               <h4 className="font-medium text-sm mb-4">Developers</h4>
               <ul className="space-y-3 text-sm text-[#888]">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">TypeScript SDK</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Smart Contracts</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Bug Bounty</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey#readme" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">TypeScript SDK</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey/tree/main/src" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Smart Contracts</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey/tree/main/test" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Security Tests</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-sm mb-4">Ecosystem</h4>
               <ul className="space-y-3 text-sm text-[#888]">
-                <li><a href="#" className="hover:text-white transition-colors">Providers Directory</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Keeper Network</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Governance</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Network Stats</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Providers Directory</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey/tree/main/src" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Keeper Network</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey/blob/main/LICENSE" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Governance & License</a></li>
+                <li><a href="#stats" onClick={(e) => { e.preventDefault(); setActiveTab('overview'); setTimeout(() => document.getElementById('stats')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="hover:text-white transition-colors">Network Stats</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-sm mb-4">Company</h4>
               <ul className="space-y-3 text-sm text-[#888]">
-                <li><a href="#" className="hover:text-white transition-colors">Twitter (X)</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Discord Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security Audits</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="https://x.com/saitejabandaru" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Twitter (X)</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">GitHub Community</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey/actions" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">CI Pipelines</a></li>
+                <li><a href="https://github.com/saitejabandaru-in/AccessKey" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Terms of Service</a></li>
               </ul>
             </div>
           </div>
