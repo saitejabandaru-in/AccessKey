@@ -1,7 +1,19 @@
 @import "tailwindcss";
 
-body {
-  background-color: #0f172a;
-  color: #f8fafc;
-  -webkit-font-smoothing: antialiased;
+@theme {
+  --color-border: rgba(255, 255, 255, 0.1);
+  --animate-shimmer: shimmer 2s infinite;
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@layer base {
+  body {
+    background-color: #000;
+    color: #fff;
+  }
 }
