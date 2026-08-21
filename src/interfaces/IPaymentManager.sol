@@ -15,9 +15,17 @@ interface IPaymentManager {
     }
 
     /// @notice Events
-    event PaymentStreamCreated(uint256 indexed subscriptionId, address indexed payer, address indexed token, uint256 amount, uint256 protocolFee);
+    event PaymentStreamCreated(
+        uint256 indexed subscriptionId,
+        address indexed payer,
+        address indexed token,
+        uint256 amount,
+        uint256 protocolFee
+    );
     event Withdrawal(uint256 indexed subscriptionId, address indexed provider, address indexed token, uint256 amount);
-    event RefundIssued(uint256 indexed subscriptionId, address indexed subscriber, address indexed token, uint256 amount);
+    event RefundIssued(
+        uint256 indexed subscriptionId, address indexed subscriber, address indexed token, uint256 amount
+    );
     event ProtocolFeeUpdated(uint256 newFeeBps);
     event ProtocolFeesWithdrawn(address indexed token, uint256 amount);
 

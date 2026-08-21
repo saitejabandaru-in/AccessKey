@@ -12,7 +12,8 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 /// @notice Trustless settlement of API usage via user-signed state channels
 contract UsageSettlement is IUsageSettlement, AccessControl, EIP712 {
     bytes32 public constant SETTLEMENT_ROLE = keccak256("SETTLEMENT_ROLE");
-    bytes32 public constant USAGE_TYPEHASH = keccak256("Usage(uint256 subscriptionId,uint256 consumedCredits,uint256 deadline)");
+    bytes32 public constant USAGE_TYPEHASH =
+        keccak256("Usage(uint256 subscriptionId,uint256 consumedCredits,uint256 deadline)");
 
     ISubscriptionManager public subscriptionManager;
     IPlanManager public planManager;
@@ -25,23 +26,18 @@ contract UsageSettlement is IUsageSettlement, AccessControl, EIP712 {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function settleUsage(
-        uint256 subscriptionId,
-        uint256 consumedCredits,
-        uint256 deadline,
-        bytes calldata signature
-    ) external override onlyRole(SETTLEMENT_ROLE) {
+    function settleUsage(uint256 subscriptionId, uint256 consumedCredits, uint256 deadline, bytes calldata signature)
+        external
+        override
+        onlyRole(SETTLEMENT_ROLE)
+    {
         if (block.timestamp > deadline) revert ExpiredDeadline();
-        
+
         ISubscriptionManager.Subscription memory sub = subscriptionManager.getSubscription(subscriptionId);
         if (sub.subscriptionId == 0) revert InvalidSubscription();
 
-        bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(
-            USAGE_TYPEHASH,
-            subscriptionId,
-            consumedCredits,
-            deadline
-        )));
+        bytes32 digest =
+            _hashTypedDataV4(keccak256(abi.encode(USAGE_TYPEHASH, subscriptionId, consumedCredits, deadline)));
 
         // NEW TRUSTLESS MODEL: The API Gateway gets this signature from the USER (subscriber) before giving them the API response.
         // The provider then submits this user-signed proof to the blockchain.

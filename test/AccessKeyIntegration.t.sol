@@ -16,7 +16,7 @@ contract AccessKeyIntegrationTest is Test {
     SubscriptionManager public subscriptionManager;
     PaymentManager public paymentManager;
     UsageSettlement public usageSettlement;
-    
+
     MockUSDC public usdc;
     MockV3Aggregator public ethOracle;
 
@@ -35,10 +35,7 @@ contract AccessKeyIntegrationTest is Test {
         usageSettlement = new UsageSettlement(address(subscriptionManager), address(planManager));
 
         accessKey = new AccessKey(
-            address(planManager),
-            address(subscriptionManager),
-            address(paymentManager),
-            address(usageSettlement)
+            address(planManager), address(subscriptionManager), address(paymentManager), address(usageSettlement)
         );
 
         // Setup Roles

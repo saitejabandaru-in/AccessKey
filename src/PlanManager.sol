@@ -9,13 +9,7 @@ interface AggregatorV3Interface {
     function latestRoundData()
         external
         view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
 }
 
 /// @title PlanManager
@@ -41,7 +35,7 @@ contract PlanManager is IPlanManager, AccessControl {
         if (duration == 0) revert InvalidPlanConfiguration();
 
         planId = _nextPlanId++;
-        
+
         _plans[planId] = Plan({
             planId: planId,
             provider: msg.sender,
@@ -112,28 +106,21 @@ contract PlanManager is IPlanManager, AccessControl {
     function getDynamicPrice(uint256 planId) external view override returns (uint256) {
         Plan memory plan = _plans[planId];
         if (plan.planId == 0) revert PlanDoesNotExist();
-        
+
         if (plan.priceFeed == address(0)) {
             return plan.price; // Native token price
         }
-        
+
         AggregatorV3Interface oracle = AggregatorV3Interface(plan.priceFeed);
-        (, int256 price, , , ) = oracle.latestRoundData();
+        (, int256 price,,,) = oracle.latestRoundData();
         if (price <= 0) revert OracleError();
 
-        
-        
-        // Assume price in fiat is 18 decimals, and we want to compute how many payment tokens (which might have X decimals).
-        // For simplicity: cost in fiat = plan.price (e.g. 10 * 10^18 for $10)
-        // Oracle returns $2000 per ETH (2000 * 10^8)
-        // Expected ETH = (10 * 10^18 * 10^decimals) / price
-        // We assume payment token is always 18 decimals for this V1 dynamic pricing, or just scale properly.
-        // Let's assume plan.price is in fiat with same decimals as the oracle for simplicity.
-        
-        // More robust:
-        // requiredTokens = (plan.price * 10^18) / (oraclePrice * 10^(18 - oracleDecimals))
-        // Let's assume plan.price is USD amount with 8 decimals (same as chainlink USD pairs)
-        // requiredTokens = (plan.price * 1e18) / price
-        return (plan.price * 1e18) / uint256(price);
+        uint8 oracleDecimals = oracle.decimals();
+
+        // Dynamically compute the required payment amount based on the fiat price of the plan
+        // plan.price is represented with 18 decimals (e.g. $10 = 10 * 10^18)
+        // oracle price has oracleDecimals (e.g. $2000 = 2000 * 10^8)
+        // requiredTokens = (plan.price * 10^oracleDecimals) / price
+        return (plan.price * (10 ** oracleDecimals)) / uint256(price);
     }
 }

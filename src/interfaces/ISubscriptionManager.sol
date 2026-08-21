@@ -4,7 +4,12 @@ pragma solidity ^0.8.20;
 import "./IPlanManager.sol";
 
 interface ISubscriptionManager {
-    enum SubscriptionStatus { NONE, ACTIVE, CANCELLED, EXPIRED }
+    enum SubscriptionStatus {
+        NONE,
+        ACTIVE,
+        CANCELLED,
+        EXPIRED
+    }
 
     struct Subscription {
         uint256 subscriptionId;

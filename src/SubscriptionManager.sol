@@ -32,18 +32,13 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         }
 
         uint256 price = planManager.getDynamicPrice(planId);
-        
+
         paymentManager.processPayment{value: msg.value}(
-            msg.sender,
-            plan.provider,
-            plan.paymentToken,
-            price,
-            plan.duration,
-            _nextSubscriptionId
+            msg.sender, plan.provider, plan.paymentToken, price, plan.duration, _nextSubscriptionId
         );
 
         subscriptionId = _nextSubscriptionId++;
-        
+
         _subscriptions[subscriptionId] = Subscription({
             subscriptionId: subscriptionId,
             planId: planId,
@@ -78,56 +73,74 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
         Subscription storage sub = _subscriptions[subscriptionId];
         if (sub.subscriptionId == 0) revert InvalidSubscription();
         if (sub.status == SubscriptionStatus.CANCELLED) revert AlreadyCancelled();
-        
+        if (sub.subscriber != msg.sender) revert NotSubscriber();
+
         IPlanManager.Plan memory plan = planManager.getPlan(sub.planId);
         if (!plan.isActive) revert InactivePlan();
 
         uint256 price = planManager.getDynamicPrice(sub.planId);
 
+        // Treat renewal as a completely new subscription to avoid stream overwrites
+        // and to reset usage limits automatically.
+        uint256 newSubscriptionId = _nextSubscriptionId++;
+
         paymentManager.processPayment{value: msg.value}(
-            sub.subscriber,
-            plan.provider,
-            plan.paymentToken,
-            price,
-            plan.duration,
-            subscriptionId // We reuse the subscription ID, but logically it's a new stream. 
-            // Wait, PaymentManager mapping _streams uses subscriptionId. We can't overwrite it if the old stream isn't fully withdrawn.
-            // But if it's renewed, the old stream might have unlocked funds. Let's create a new ID for simplicity or just bump expiry.
-            // Since PaymentManager relies on 1 stream per ID, renewing via processPayment with the same ID overwrites the stream!
-            // This is a bug if they renew early. To fix this, we should create a new stream ID.
-            // Let's pass a unique payment ID or just bump expiry without creating a new stream for now, or just let's issue a new stream ID by passing _nextSubscriptionId and bumping it, but that breaks mapping.
+            sub.subscriber, plan.provider, plan.paymentToken, price, plan.duration, newSubscriptionId
         );
-        // FIX: The above has an architecture issue. Since we have limited time, let's just make it simple: 
-        // We will increment sub.expiryTime. But PaymentManager needs to know. 
-        // Let's just create a new Subscription ID internally and return it? No, keep it simple.
+
+        _subscriptions[newSubscriptionId] = Subscription({
+            subscriptionId: newSubscriptionId,
+            planId: sub.planId,
+            subscriber: sub.subscriber,
+            provider: plan.provider,
+            startTime: block.timestamp,
+            expiryTime: block.timestamp + plan.duration,
+            status: SubscriptionStatus.ACTIVE
+        });
+
+        // Mark old subscription as expired immediately if it wasn't already
+        sub.expiryTime = block.timestamp;
+
+        _userToPlanToSubscription[sub.subscriber][sub.planId] = newSubscriptionId;
+
+        emit SubscriptionRenewed(subscriptionId, block.timestamp + plan.duration);
     }
 
-    // A better approach for renew:
     function executeAutoRenewal(uint256 subscriptionId) external payable override {
         Subscription storage sub = _subscriptions[subscriptionId];
         if (sub.status == SubscriptionStatus.CANCELLED) revert AlreadyCancelled();
-        // Allow anyone (e.g. keeper) to call this if expiryTime is in the past
         if (block.timestamp <= sub.expiryTime) revert InvalidSubscription(); // not expired yet
-        
+
         IPlanManager.Plan memory plan = planManager.getPlan(sub.planId);
         uint256 price = planManager.getDynamicPrice(sub.planId);
 
+        uint256 newSubscriptionId = _nextSubscriptionId++;
+
         paymentManager.processPayment{value: msg.value}(
-            sub.subscriber,
-            plan.provider,
-            plan.paymentToken,
-            price,
-            plan.duration,
-            subscriptionId // Overwrites stream. If expired, stream is fully earned anyway.
+            sub.subscriber, plan.provider, plan.paymentToken, price, plan.duration, newSubscriptionId
         );
 
-        sub.startTime = block.timestamp;
-        sub.expiryTime = block.timestamp + plan.duration;
+        _subscriptions[newSubscriptionId] = Subscription({
+            subscriptionId: newSubscriptionId,
+            planId: sub.planId,
+            subscriber: sub.subscriber,
+            provider: plan.provider,
+            startTime: block.timestamp,
+            expiryTime: block.timestamp + plan.duration,
+            status: SubscriptionStatus.ACTIVE
+        });
 
-        emit SubscriptionRenewed(subscriptionId, sub.expiryTime);
+        _userToPlanToSubscription[sub.subscriber][sub.planId] = newSubscriptionId;
+
+        emit SubscriptionRenewed(subscriptionId, block.timestamp + plan.duration);
     }
 
-    function upgrade(uint256 subscriptionId, uint256 newPlanId) external payable override returns (uint256 newSubscriptionId) {
+    function upgrade(uint256 subscriptionId, uint256 newPlanId)
+        external
+        payable
+        override
+        returns (uint256 newSubscriptionId)
+    {
         Subscription storage sub = _subscriptions[subscriptionId];
         if (sub.subscriber != msg.sender) revert NotSubscriber();
         if (sub.status == SubscriptionStatus.CANCELLED) revert AlreadyCancelled();
@@ -136,26 +149,21 @@ contract SubscriptionManager is ISubscriptionManager, AccessControl {
 
         IPlanManager.Plan memory newPlan = planManager.getPlan(newPlanId);
         if (!newPlan.isActive) revert InactivePlan();
-        
+
         uint256 newPrice = planManager.getDynamicPrice(newPlanId);
-        
+
         // 1. Cancel the old stream, getting the unearned refund sent to the subscriber.
         // Wait, if it refunds to the subscriber, the subscriber needs to pay the FULL new price in this transaction.
         // That is simpler and cleaner than complex contract-held credit math.
         paymentManager.cancelAndRefundStream(subscriptionId);
-        
+
         sub.status = SubscriptionStatus.CANCELLED;
         sub.expiryTime = block.timestamp;
         emit SubscriptionCancelled(subscriptionId);
 
         // 2. Create the new subscription
         paymentManager.processPayment{value: msg.value}(
-            msg.sender,
-            newPlan.provider,
-            newPlan.paymentToken,
-            newPrice,
-            newPlan.duration,
-            _nextSubscriptionId
+            msg.sender, newPlan.provider, newPlan.paymentToken, newPrice, newPlan.duration, _nextSubscriptionId
         );
 
         newSubscriptionId = _nextSubscriptionId++;

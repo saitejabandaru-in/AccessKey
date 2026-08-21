@@ -99,7 +99,7 @@ contract PaymentManager is IPaymentManager, AccessControl {
     function getUnearnedFunds(uint256 subscriptionId) external view override returns (uint256) {
         Stream memory stream = _streams[subscriptionId];
         if (stream.providerAmount == 0) return 0;
-        
+
         if (block.timestamp >= stream.startTime + stream.duration) {
             return 0;
         }
@@ -119,7 +119,7 @@ contract PaymentManager is IPaymentManager, AccessControl {
         stream.withdrawnAmount += earned;
 
         if (stream.token == address(0)) {
-            (bool success, ) = msg.sender.call{value: earned}("");
+            (bool success,) = msg.sender.call{value: earned}("");
             if (!success) revert TransferFailed();
         } else {
             IERC20(stream.token).safeTransfer(msg.sender, earned);
@@ -129,7 +129,12 @@ contract PaymentManager is IPaymentManager, AccessControl {
     }
 
     /// @notice Refunds unearned funds to subscriber and zeroes stream
-    function cancelAndRefundStream(uint256 subscriptionId) external override onlyRole(SUBSCRIPTION_MANAGER_ROLE) returns (uint256 refundedAmount) {
+    function cancelAndRefundStream(uint256 subscriptionId)
+        external
+        override
+        onlyRole(SUBSCRIPTION_MANAGER_ROLE)
+        returns (uint256 refundedAmount)
+    {
         Stream storage stream = _streams[subscriptionId];
         if (stream.providerAmount == 0) revert StreamDoesNotExist();
 
@@ -148,7 +153,7 @@ contract PaymentManager is IPaymentManager, AccessControl {
 
         if (refundedAmount > 0) {
             if (stream.token == address(0)) {
-                (bool success, ) = stream.subscriber.call{value: refundedAmount}("");
+                (bool success,) = stream.subscriber.call{value: refundedAmount}("");
                 if (!success) revert TransferFailed();
             } else {
                 IERC20(stream.token).safeTransfer(stream.subscriber, refundedAmount);
@@ -164,7 +169,7 @@ contract PaymentManager is IPaymentManager, AccessControl {
         _protocolFees[token] = 0;
 
         if (token == address(0)) {
-            (bool success, ) = to.call{value: amount}("");
+            (bool success,) = to.call{value: amount}("");
             if (!success) revert TransferFailed();
         } else {
             IERC20(token).safeTransfer(to, amount);
