@@ -1,5 +1,1 @@
-AccessKeyIntegrationTest:test_Integration_FullWorkflowERC20() (gas: 571607)
-AccessKeyIntegrationTest:test_Integration_FullWorkflowNativeETH() (gas: 709325)
-CounterTest:testFuzz_SetNumber(uint256) (runs: 256, μ: 30082, ~: 30860)
-CounterTest:test_Increment() (gas: 30937)
-PlanManagerTest:test_CreatePlan() (gas: 195330)
+AccessKeyIntegrationTest:test_Integration_FullWorkflowERC20() (gas: 760051)
